@@ -1,9 +1,33 @@
-ENTITY_GENERATION_JSON_PROMPT = """
+ENTITY_TYPE_GENERATION_PROMPT = """
+The goal is to study the connections and relations between the entity types and their features in order to understand all available information from the text.
+As part of the analysis, you want to identify the entity types present in the following text.
+Avoid general entity types such as "other" or "unknown".
+This is VERY IMPORTANT: Do not generate redundant or overlapping entity types. For example, if the text contains "company" and "organization" entity types, you should return only one of them.
+Don't worry about quantity, always choose quality over quantity. And make sure EVERYTHING in your answer is relevant to the context of entity extraction.
+And remember, it is ENTITY TYPES what we need.
+Return the entity types in as a list of comma sepparated of strings.
+=====================================================================
+EXAMPLE SECTION: The following section includes example output. These examples **must be excluded from your answer**.
+
+EXAMPLE 1
+Text: Industry leaders such as Panasonic are vying for supremacy in the battery production sector. They are investing heavily in research and development and are exploring new technologies to gain a competitive edge.
+RESPONSE:
+organization, technology, sectors, investment strategies
+END OF EXAMPLE 1
+======================================================================
+
+======================================================================
+REAL DATA: The following section is the real data. You should use only this real data to prepare your answer. Generate Entity Types only.
+Text: {input_text}
+RESPONSE:
+{{<entity_types>}}
+"""
+
+ENTITY_GENERATION_PROMPT = """
 -Goal-
 Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text.
 
--Steps-
-1. Identify all entities. For each identified entity, extract the following information:
+Identify all entities. For each identified entity, extract the following information:
 - name: Name of the entity, capitalized
 - type: One of the following types: [{entity_types}]
 - description: Comprehensive description of the entity's attributes and activities
@@ -13,6 +37,7 @@ Given a text document that is potentially relevant to this activity and a list o
 -Examples-
 ######################
 Example 1:
+Entity_types: ORGANIZATION,PERSON
 Text:
 The Verdantis's Central Institution is scheduled to meet on Monday and Thursday, with the institution planning to release its latest policy decision on Thursday at 1:30 p.m. PDT, followed by a press conference where Central Institution Chair Martin Smith will take questions. Investors expect the Market Strategy Committee to hold its benchmark interest rate steady in a range of 3.5%-3.75%.
 ######################
@@ -25,6 +50,7 @@ Output:
 
 ######################
 Example 2:
+Entity_types: ORGANIZATION
 Text:
 TechGlobal's (TG) stock skyrocketed in its opening day on the Global Exchange Thursday. But IPO experts warn that the semiconductor corporation's debut on the public markets isn't indicative of how other newly listed companies may perform.
 
@@ -41,6 +67,40 @@ Output:
 -Real Data-
 ######################
 entity_types: {entity_types}
+text: {input_text}
+######################
+output:
+"""
+
+RELATIONSHIPS_GENERATION_PROMPT = """
+-Goal-
+Given a text document and a list of entities, identify all relationships among the provided entities.
+
+From the provided entities, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
+For each pair of related entities, extract the following information:
+- source_entity: name and type of the source entity, as provided
+- target_entity: name and type of the target entity, as provided
+- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
+- relationship_strength: an integer score between 1 to 10, indicating strength of the relationship between the source entity and target entity
+
+######################
+-Examples-
+######################
+Example 1:
+Entities: {{"name": "CENTRAL INSTITUTION", type: "ORGANIZATION", "name": "MARTIN SMITH", type: "PERSON", "name": "MARKET STRATEGY COMMITTEE", type: "ORGANIZATION"}}
+Text:
+The Verdantis's Central Institution is scheduled to meet on Monday and Thursday, with the institution planning to release its latest policy decision on Thursday at 1:30 p.m. PDT, followed by a press conference where Central Institution Chair Martin Smith will take questions. Investors expect the Market Strategy Committee to hold its benchmark interest rate steady in a range of 3.5%-3.75%.
+######################
+Output:
+[
+    {{"subject": ["MARTIN SMITH", "PERSON"], "object": ["CENTRAL INSTITUTION", "ORGANIZATION"], "relationship_description": "Martin Smith is the Chair of the Central Institution and will answer questions at a press conference", "relationship_strength": 9}}
+]
+VERY IMPORTANT: Make sure entity name and type are identical one from provided entites. They will be used for identification later.
+
+######################
+-Real Data-
+######################
+entities: {entities}
 text: {input_text}
 ######################
 output:

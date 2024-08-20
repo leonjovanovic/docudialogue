@@ -7,12 +7,10 @@ class Entity:
 
 class Relationship:
     def __init__(
-        self, subject: Entity, object: Entity, description: str, context: str
+        self, description: str, strength: int
     ) -> None:
-        self.subject = subject
-        self.object = object
         self.description = description
-        self.context = context
+        self.strength = strength
 
 
 class Triplet:
