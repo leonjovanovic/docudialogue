@@ -77,7 +77,7 @@ class OpenAIModel(LLMModel):
         model_name: str = "gpt-4o-mini",
         temperature: float = 0,
         max_tokens: int = 3000,
-        top_p: float = 1.0,
+        top_p: float = 0.0,
         frequency_penalty: float = 0.0,
         presence_penalty: float = 0.0,
     ) -> BaseModel:
