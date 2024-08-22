@@ -1,33 +1,19 @@
 from abc import ABC, abstractmethod
 import os
-from pydantic import BaseModel
-from triplet_extraction.classes import Entity
-from triplet_extraction.llm_wrappers import LLMModel, OpenAIModel
 from dotenv import load_dotenv
 import logging
 
+from triplet_extraction.classes import Entity
+from triplet_extraction.llm_wrappers import OpenAIModel
 from triplet_extraction.prompts import (
     ENTITY_GENERATION_PROMPT,
     ENTITY_TYPE_GENERATION_PROMPT,
 )
+from triplet_extraction.pydantic_classes import EntityResponse, EntityTypes
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-class EntityTypes(BaseModel):
-    types: list[str]
-
-
-class EntityBase(BaseModel):
-    name: str
-    type: str
-    description: str
-
-
-class EntityResponse(BaseModel):
-    entities: list[EntityBase]
 
 
 class EntityExtractor(ABC):
@@ -50,26 +36,26 @@ class EntityExtractor(ABC):
 
 class LLMEntityExtractor(EntityExtractor):
     def __init__(self, entity_types: list[str] | None = None) -> None:
-        self.model = OpenAIModel(os.environ["LLM_API_KEY"])
-        self.entity_types = entity_types
+        self._model = OpenAIModel(os.environ["LLM_API_KEY"])
+        self._entity_types = entity_types
         logger.info("LLM Entity Extractor initialized!")
 
     def _extract(self, text: str) -> list[Entity]:
-        if self.entity_types is None:
+        if not self._entity_types:
             logger.info("Entity types not found! Quering LLM to find it...")
-            entity_types = self.model.parse(
+            entity_types = self._model.parse(
                 system_prompt="",
                 user_prompt=ENTITY_TYPE_GENERATION_PROMPT.format(
-                    entity_types=self.entity_types, input_text=text
+                    entity_types=self._entity_types, input_text=text
                 ),
                 response_format=EntityTypes,
                 model_name="gpt-4o-mini",
                 temperature=0,
             ).types
         else:
-            entity_types = self.entity_types
+            entity_types = self._entity_types
         logger.info(f"Searching for following entities: {entity_types}")
-        response: EntityResponse = self.model.parse(
+        response: EntityResponse = self._model.parse(
             system_prompt="",
             user_prompt=ENTITY_GENERATION_PROMPT.format(
                 entity_types=entity_types, input_text=text
@@ -90,6 +76,6 @@ class TransformerEntityExtractor(EntityExtractor):
         logger.info("Transformer Entity Extractor initialized!")
         pass
 
-    def extract(self, text: str) -> list[Entity]:
+    def _extract(self, text: str) -> list[Entity]:
         # TODO
         pass

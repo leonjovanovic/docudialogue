@@ -2,25 +2,14 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from pydantic import BaseModel
 from triplet_extraction.classes import Entity, Relationship, Triplet
 from triplet_extraction.llm_wrappers import OpenAIModel
 from triplet_extraction.prompts import RELATIONSHIPS_GENERATION_PROMPT
+from triplet_extraction.pydantic_classes import RelationshipResponse
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-class RelationshipBase(BaseModel):
-    subject: list[str]
-    object: list[str]
-    relationship_description: str
-    relationship_strength: int
-
-
-class RelationshipResponse(BaseModel):
-    relationships: list[RelationshipBase]
 
 
 class RelationshipExtractor(ABC):
@@ -34,14 +23,13 @@ class RelationshipExtractor(ABC):
 
 class LLMRelationshipExtractor(RelationshipExtractor):
     def __init__(self) -> None:
-        self.model = OpenAIModel(os.environ["LLM_API_KEY"])
+        self._model = OpenAIModel(os.environ["LLM_API_KEY"])
         logger.info("LLM Relationship Extractor initialized!")
 
     def extract(self, text: str, entities: list[Entity]) -> list[Triplet]:
-        # TODO if entities are None, we should apply different prompt to extract everything at once
         entities_lst = [[e.name, e.type] for e in entities]
         logger.info(f"Searching for relationships between given entities ({entities_lst})...")
-        response: RelationshipResponse = self.model.parse(
+        response: RelationshipResponse = self._model.parse(
             system_prompt="",
             user_prompt=RELATIONSHIPS_GENERATION_PROMPT.format(
                 entities=entities_lst, input_text=text
