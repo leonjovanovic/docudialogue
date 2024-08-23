@@ -6,6 +6,7 @@ This is VERY IMPORTANT: Do not generate redundant or overlapping entity types. F
 Don't worry about quantity, always choose quality over quantity. And make sure EVERYTHING in your answer is relevant to the context of entity extraction.
 And remember, it is ENTITY TYPES what we need.
 Return the entity types in as a list of comma sepparated of strings.
+Each entity type should represent certain group of entities.
 =====================================================================
 EXAMPLE SECTION: The following section includes example output. These examples **must be excluded from your answer**.
 

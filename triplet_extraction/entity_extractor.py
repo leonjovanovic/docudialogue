@@ -22,8 +22,8 @@ class EntityExtractor(ABC):
     def _extract(self, text: str) -> list[Entity]:
         raise NotImplementedError
 
-    def extract(self, text: str) -> list[Entity]:
-        entities = self._extract(text)
+    def extract(self, text: str, entity_types: list[str]) -> list[Entity]:
+        entities = self._extract(text, entity_types)
         return self.postprocess_entites(entities)
 
     def postprocess_entites(self, entites: list[Entity]) -> list[Entity]:
@@ -40,20 +40,7 @@ class LLMEntityExtractor(EntityExtractor):
         self._entity_types = entity_types
         logger.info("LLM Entity Extractor initialized!")
 
-    def _extract(self, text: str) -> list[Entity]:
-        if not self._entity_types:
-            logger.info("Entity types not found! Quering LLM to find it...")
-            entity_types = self._model.parse(
-                system_prompt="",
-                user_prompt=ENTITY_TYPE_GENERATION_PROMPT.format(
-                    entity_types=self._entity_types, input_text=text
-                ),
-                response_format=EntityTypes,
-                model_name="gpt-4o-mini",
-                temperature=0,
-            ).types
-        else:
-            entity_types = self._entity_types
+    def _extract(self, text: str, entity_types: list[str]) -> list[Entity]:
         logger.info(f"Searching for following entities: {entity_types}")
         response: EntityResponse = self._model.parse(
             system_prompt="",
@@ -76,6 +63,6 @@ class TransformerEntityExtractor(EntityExtractor):
         logger.info("Transformer Entity Extractor initialized!")
         pass
 
-    def _extract(self, text: str) -> list[Entity]:
+    def _extract(self, text: str, entity_types: list[str]) -> list[Entity]:
         # TODO
         pass

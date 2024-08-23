@@ -1,20 +1,23 @@
-{
-    "storage":{
-        "load_from_json": "True",
-        "path": "storage/e906a998-7d89-4e94-bae6-e73e24054077.json"
+[
+    {
+        "storage":{
+            "file_path": "test.pdf",
+            "load_saved_file": 0,
+            "saved_file_path": "storage/e906a998-7d89-4e94-bae6-e73e24054077.json"
 
-    },
-    "input_pipeline": {
-        "split_length": 500,
-        "split_overlap": 20
-    },
-    "triplet_extraction": {
-        "extractor_type": "combined",
-        "entity_types": "",
-        "entity_extractor_type": "",
-        "llm":{
-            "model_name": "gpt-4o-mini",
-            "temperature": 0
+        },
+        "input_pipeline": {
+            "split_length": 500,
+            "split_overlap": 20
+        },
+        "triplet_extraction": {
+            "extractor_type": "combined",
+            "entity_types": [],
+            "entity_extractor_type": "",
+            "llm":{
+                "model_name": "gpt-4o-mini",
+                "temperature": 0
+            }
         }
     }
-}
+]

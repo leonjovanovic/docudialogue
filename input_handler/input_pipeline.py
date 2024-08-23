@@ -45,12 +45,12 @@ class PreprocessingPipeline:
         # self._pipeline.connect("document_splitter", "document_embedder")
         # self._pipeline.connect("document_embedder", "document_writer")
 
-    def run(self, sources: list[str]):
+    def run(self, source: str):
         # Run the pipeline and output is stored in DocumentStore
         return self._pipeline.run(
             {
                 "file_type_router": {
-                    "sources": sources
+                    "sources": [source]
                 }
             }
         )
