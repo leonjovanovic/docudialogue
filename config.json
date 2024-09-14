@@ -1,12 +1,15 @@
 [
     {
-        "storage":{
+        "input": {
             "file_path": "test.pdf",
-            "load_saved_file": 0,
-            "saved_file_path": "storage/e906a998-7d89-4e94-bae6-e73e24054077.json"
-
+            "load_saved_file": 1,
+            "saved_file_path": "storage/ff0382ab-4e1f-465f-9964-ee62669162f4.json"
         },
-        "input_pipeline": {
+        "output": {
+            "store_output": 1,
+            "folder_path": "storage"
+        },
+        "preprocessing_pipeline": {
             "split_length": 500,
             "split_overlap": 20
         },
