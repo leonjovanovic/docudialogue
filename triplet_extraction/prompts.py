@@ -2,19 +2,17 @@ ENTITY_TYPE_GENERATION_PROMPT = """
 The goal is to study the connections and relations between the entity types and their features in order to understand all available information from the text.
 As part of the analysis, you want to identify the entity types present in the following text.
 Avoid general entity types such as "other" or "unknown".
-This is VERY IMPORTANT: Do not generate redundant or overlapping entity types. For example, if the text contains "company" and "organization" entity types, you should return only one of them.
-Don't worry about quantity, always choose quality over quantity. And make sure EVERYTHING in your answer is relevant to the context of entity extraction.
-And remember, it is ENTITY TYPES what we need.
-Return the entity types in as a list of comma sepparated of strings.
-Each entity type should represent certain group of entities.
+Follow these steps:
+Step 1: Extract all types of present entities in text. Each entity type should represent certain group of entities. Don't worry about quantity, always choose quality over quantity. Types can be specific but not too specific and they should be relevant to the text subject.
+Step 2: Double check types you found and remove redundant or overlapping ones and keep only one. For example, if, in step 1, you found "company" and "organization" entity types, you should keep only one of them.
 =====================================================================
 EXAMPLE SECTION: The following section includes example output. These examples **must be excluded from your answer**.
 
-EXAMPLE 1
+EXAMPLE
 Text: Industry leaders such as Panasonic are vying for supremacy in the battery production sector. They are investing heavily in research and development and are exploring new technologies to gain a competitive edge.
 RESPONSE:
 organization, technology, sectors, investment strategies
-END OF EXAMPLE 1
+END OF EXAMPLE
 ======================================================================
 
 ======================================================================

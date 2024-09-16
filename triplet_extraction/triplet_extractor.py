@@ -43,6 +43,7 @@ class TripletExtractionPipeline:
                 model_name="gpt-4o-mini",
                 temperature=0,
             ).types
+            logger.info(f"Following entity types found: {self._entity_types}")
         return self.extractor.extract(texts, self._entity_types)
 
 
@@ -74,7 +75,6 @@ class CombinedTripletExtractor(AbstractTripletExtractor):
         logger.info("Combined Triplet Extractor initialized!")
 
     def _extract_from_text(self, text: str, entity_types: list[str]) -> list[Triplet]:
-        logger.info(f"Searching for following entities: {entity_types}")
         response: EntityRelationshipResponse = self._model.parse(
             system_prompt="",
             user_prompt=ENTITY_RELATIONSHIPS_GENERATION_PROMPT.format(

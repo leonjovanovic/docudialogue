@@ -36,8 +36,8 @@ class DocumentPipeline:
             self.triplets = self._triplet_extraction_pipeline.run(
                 [doc.content for doc in docs]
             )
+            self._store(self._config["output"], docs, self.triplets)
         logger.info(f"Total number of triplets: {len(self.triplets)}")
-        self._store(self._config["output"], docs, self.triplets)
         return self.triplets
 
     def _load_triplets(self, path: str) -> list[Triplet]:
