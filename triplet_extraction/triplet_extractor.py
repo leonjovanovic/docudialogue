@@ -7,12 +7,12 @@ from triplet_extraction.entity_extractor import (
     LLMEntityExtractor,
     TransformerEntityExtractor,
 )
-from triplet_extraction.llm_wrappers import OpenAIModel
-from triplet_extraction.prompts import (
+from llm_wrappers.llm_wrappers import OpenAIModel
+from llm_wrappers.prompts import (
     ENTITY_TYPE_GENERATION_PROMPT,
     ENTITY_RELATIONSHIPS_GENERATION_PROMPT,
 )
-from triplet_extraction.pydantic_classes import EntityRelationshipResponse, EntityTypes
+from llm_wrappers.pydantic_classes import EntityRelationshipResponse, EntityTypes
 from triplet_extraction.relationship_extractor import LLMRelationshipExtractor
 
 
@@ -31,20 +31,25 @@ class TripletExtractionPipeline:
                 self._model, config["entity_extractor_type"]
             )
 
-    def run(self, texts: list[str]) -> list[Triplet]:
+    def run(self, docs: list[list[str]]) -> list[Triplet]:
+        triplets = []
+        for doc in docs:
+            triplets.extend(self.run_doc(doc))
+
+    def run_doc(self, doc: list[str]) -> list[Triplet]:
         if not self._entity_types:
             logger.info("Entity types not found! Quering LLM to find it...")
             self._entity_types = self._model.parse(
                 system_prompt="",
                 user_prompt=ENTITY_TYPE_GENERATION_PROMPT.format(
-                    input_text=" ".join(texts)
+                    input_text=" ".join(doc)
                 ),
                 response_format=EntityTypes,
                 model_name="gpt-4o-mini",
                 temperature=0,
             ).types
             logger.info(f"Following entity types found: {self._entity_types}")
-        return self.extractor.extract(texts, self._entity_types)
+        return self.extractor.extract(doc, self._entity_types)
 
 
 class AbstractTripletExtractor(ABC):

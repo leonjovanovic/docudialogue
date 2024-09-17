@@ -1,26 +1,24 @@
-[
-    {
-        "input": {
-            "file_path": "test.pdf",
-            "load_saved_file": 1,
-            "saved_file_path": "storage/4e08441b-b1b9-4d72-bf0e-0b7dd76678a8.json"
-        },
-        "output": {
-            "store_output": 1,
-            "folder_path": "storage"
-        },
-        "preprocessing_pipeline": {
-            "split_length": 500,
-            "split_overlap": 20
-        },
-        "triplet_extraction": {
-            "extractor_type": "combined",
-            "entity_types": [],
-            "entity_extractor_type": "",
-            "llm":{
-                "model_name": "gpt-4o-mini",
-                "temperature": 0
-            }
+{
+    "input": {
+        "file_paths": ["test.pdf"]
+    },
+    "preprocessing_pipeline": {
+        "split_length": 500,
+        "split_overlap": 20
+    },
+    "triplet_extraction": {
+        "extractor_type": "combined",
+        "entity_types": [],
+        "entity_extractor_type": "",
+        "llm":{
+            "model_name": "gpt-4o-mini",
+            "temperature": 0
+        }
+    },
+    "graph": {
+        "llm":{
+            "model_name": "gpt-4o-mini",
+            "temperature": 0
         }
     }
-]
+}

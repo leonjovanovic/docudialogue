@@ -192,3 +192,9 @@ text: {input_text}
 ######################
 output:
 """
+
+SUMMARIZE_DESCRIPTIONS_PROMPT = """
+You will be given list of descriptions that describe certain entity or relationship. Your job is to provide short summary that captures all of the distinct information from each description. Purpose of summarization is for each entity or relationship to have a single concise description.
+
+Here are the descriptions: {descriptions}
+"""

@@ -3,9 +3,9 @@ import logging
 import os
 
 from triplet_extraction.classes import Entity, Relationship, Triplet
-from triplet_extraction.llm_wrappers import OpenAIModel
-from triplet_extraction.prompts import RELATIONSHIPS_GENERATION_PROMPT
-from triplet_extraction.pydantic_classes import RelationshipResponse
+from llm_wrappers.llm_wrappers import OpenAIModel
+from llm_wrappers.prompts import RELATIONSHIPS_GENERATION_PROMPT
+from llm_wrappers.pydantic_classes import RelationshipResponse
 
 
 logger = logging.getLogger(__name__)

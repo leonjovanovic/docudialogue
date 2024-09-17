@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 import logging
 
 from triplet_extraction.classes import Entity
-from triplet_extraction.llm_wrappers import OpenAIModel
-from triplet_extraction.prompts import (
+from llm_wrappers.llm_wrappers import OpenAIModel
+from llm_wrappers.prompts import (
     ENTITY_GENERATION_PROMPT,
     ENTITY_TYPE_GENERATION_PROMPT,
 )
-from triplet_extraction.pydantic_classes import EntityResponse, EntityTypes
+from llm_wrappers.pydantic_classes import EntityResponse, EntityTypes
 
 load_dotenv()
 logger = logging.getLogger(__name__)

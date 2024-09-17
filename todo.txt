@@ -1,0 +1,3 @@
+* Multiprocecssing for triplets extraction (differentiate between multiprocessing for each document and for each chunk) and graph summarization
+* Find a way to merge very similar entities
+* split entity types into 2 gpt calls, second to check.

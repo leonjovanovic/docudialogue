@@ -29,3 +29,7 @@ class RelationshipResponse(BaseModel):
 class EntityRelationshipResponse(BaseModel):
     entities: EntityResponse
     relationships: RelationshipResponse
+
+
+class SummarizedDescription(BaseModel):
+    description: str
