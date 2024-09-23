@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 from igraph import Graph
 from leidenalg import ModularityVertexPartition
@@ -21,29 +22,16 @@ def summarize_descriptions(descriptions: list[str] | dict, prompt: str) -> str:
             temperature=0,
         ).description
 
-def create_outside_connections(subgraph: Graph, partition: ModularityVertexPartition) -> dict:
-    node_to_community_edges = {}
-
-    for vertex in subgraph.vs:
-        node = vertex.index
-        community = partition.membership[node]
-        node_to_community_edges[node] = []
-
-        for neighbor in subgraph.neighbors(node):
-            neighbor_community = partition.membership[neighbor]
-            if community != neighbor_community:
-                edge_id = subgraph.get_eid(node, neighbor)
-                node_to_community_edges[node].append({
-                    'edge': edge_id,
-                    'to_community': neighbor_community,
-                    'to_node': neighbor
-                })
-
-    # Example usage
-    for node, edges in node_to_community_edges.items():
-        if edges:
-            print(f"Node {subgraph.vs[node]['name']} can leave community {partition.membership[node]} via edges: {edges}")
-        else:
-            print(f"Node {subgraph.vs[node]['name']} stays within its community {partition.membership[node]}")
-
-    return {}
+def create_outside_connections(community_id: int, graph: Graph, partition: ModularityVertexPartition) -> dict:
+    outside_connections = {}
+    for idx, crossing in enumerate(partition.crossing()):
+        if crossing:
+            node1, node2 = graph.es[idx].tuple
+            if partition.membership[node1] == community_id or partition.membership[node2] == community_id:
+                community_node = node1 if partition.membership[node1] == community_id else node2
+                neighbor_node = node1 if community_node == node2 else node2
+                neighbour_community_id = partition.membership[neighbor_node]
+                if neighbour_community_id not in outside_connections:
+                    outside_connections[neighbour_community_id] = defaultdict(list)
+                outside_connections[neighbour_community_id][neighbor_node].append(idx)
+    return outside_connections
