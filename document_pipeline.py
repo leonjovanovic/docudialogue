@@ -44,8 +44,9 @@ class DocumentPipeline:
         # Step 4: Create graph
         self.graph = Graph(self.triplets)
         logger.info(
-            f"Graph created with {len(self.graph.graph.nodes)} nodes and {len(self.graph.graph.edges)} edges."
+            f"Graph created with {self.graph.vcount()} nodes and {self.graph.ecount()} edges."
         )
+
 
     def _initialize_pipeline(self, config_path: str) -> None:
         self.config = json.load(open(config_path, "r"))

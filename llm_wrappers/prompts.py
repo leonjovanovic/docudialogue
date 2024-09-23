@@ -198,3 +198,9 @@ You will be given list of descriptions that describe certain entity or relations
 
 Here are the descriptions: {descriptions}
 """
+
+SUMMARIZE_GRAPH_PROMPT = """
+You will be given dictionary with vertex and edge descriptions within a single graph. Your job is to provide short summary of that graph that captures all of the distinct information from each description. Purpose of summarization is for graph to have a single concise description.
+
+Here are the descriptions: {descriptions}
+"""
