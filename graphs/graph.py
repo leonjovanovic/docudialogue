@@ -62,10 +62,9 @@ class GraphTripletHandler:
 
     def _create_communities(self) -> list[Community]:
         communities = []
-        self.outside_connections = create_outside_connections(self._graph, self._partition)
+        self._outside_connections = create_outside_connections(self._graph, self._partition)
         for idx, subgraph in enumerate(self._partition.subgraphs()):
-            # Create outside connections
-            communities.append(Community(self._graph, subgraph, self.outside_connections[idx]))
+            communities.append(Community(self._graph, subgraph, self._outside_connections[idx]))
         return communities
     
     def run(self) -> list[Triplet]:
