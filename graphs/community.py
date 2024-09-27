@@ -1,16 +1,18 @@
 import os
 from igraph import Graph, Vertex, Edge
 
-from graphs.graph_utils import summarize_descriptions
+from graphs.graph_utils import localize_connections, summarize_descriptions
 from llm_wrappers.prompts import SUMMARIZE_GRAPH_PROMPT
 
 
 class Community:
     def __init__(
-        self, graph: Graph, outside_connections: dict[int, tuple[Vertex, Edge]]
+        self, parent_graph: Graph, graph: Graph, outside_connections: dict[int, dict[int: list[int]]]
     ) -> None:
+        self.parent_graph = parent_graph
         self.graph = graph
         self.outside_connections = outside_connections
+        self.outside_connections_locallized = localize_connections(outside_connections)
         self.summary = self.summarize_community(self.graph)
 
     def summarize_community(self):

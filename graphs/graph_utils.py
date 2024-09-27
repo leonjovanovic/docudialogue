@@ -1,6 +1,7 @@
 from collections import defaultdict
 import os
 from igraph import Graph
+import igraph
 from leidenalg import ModularityVertexPartition
 
 from llm_wrappers.llm_wrappers import OpenAIModel
@@ -22,7 +23,7 @@ def summarize_descriptions(descriptions: list[str] | dict, prompt: str) -> str:
             temperature=0,
         ).description
 
-def create_outside_connections(community_id: int, graph: Graph, partition: ModularityVertexPartition) -> dict:
+def create_outside_connections_community(community_id: int, graph: Graph, partition: ModularityVertexPartition) -> dict:
     outside_connections = {}
     for idx, crossing in enumerate(partition.crossing()):
         if crossing:
@@ -33,5 +34,23 @@ def create_outside_connections(community_id: int, graph: Graph, partition: Modul
                 neighbour_community_id = partition.membership[neighbor_node]
                 if neighbour_community_id not in outside_connections:
                     outside_connections[neighbour_community_id] = defaultdict(list)
-                outside_connections[neighbour_community_id][neighbor_node].append(idx)
+                outside_connections[neighbour_community_id][community_node].append(idx)
+    return {comm_id: {node_id: list(edges) for node_id, edges in vertices.items()} for comm_id, vertices in outside_connections.items()}
+
+
+def create_outside_connections(graph: Graph, partition: ModularityVertexPartition) -> dict:
+    outside_connections = {}
+    for community_id in range(len(partition.subgraphs())):
+        outside_connections[community_id] = create_outside_connections_community(community_id, graph, partition)
     return outside_connections
+
+def localize_connections(graph: Graph, subgraph: Graph, connections: dict) -> dict:
+    localized_connections = {}
+    for neighbor_community_id, vertices in connections.items():
+        if neighbor_community_id not in localized_connections:
+            localized_connections[neighbor_community_id] = []
+        for vertex_id in vertices.keys():
+            vertex_name = graph.vs[vertex_id]['name']
+            local_vertex_id = subgraph.vs.find(vertex_name).index
+            localized_connections[neighbor_community_id].append(local_vertex_id)
+    return localized_connections
