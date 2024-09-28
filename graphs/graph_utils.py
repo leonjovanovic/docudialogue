@@ -1,7 +1,6 @@
 from collections import defaultdict
 import os
 from igraph import Graph
-import igraph
 from leidenalg import ModularityVertexPartition
 
 from llm_wrappers.llm_wrappers import OpenAIModel

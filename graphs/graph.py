@@ -17,8 +17,7 @@ class GraphTripletHandler:
     def __init__(self, triplets: list[Triplet]):
         self._graph = ig.Graph(directed=False)
         self._initialize_graph(triplets)
-        self._summarize_graph_descriptions()
-        self._partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
+        # self._summarize_graph_descriptions()
         self._communities = self._create_communities()
     
     def _initialize_graph(self, triplets: list[Triplet]):
@@ -62,10 +61,27 @@ class GraphTripletHandler:
 
     def _create_communities(self) -> list[Community]:
         communities = []
-        self._outside_connections = create_outside_connections(self._graph, self._partition)
-        for idx, subgraph in enumerate(self._partition.subgraphs()):
+        partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
+        self._outside_connections = create_outside_connections(self._graph, partition)
+        for idx, subgraph in enumerate(partition.subgraphs()):
             communities.append(Community(self._graph, subgraph, self._outside_connections[idx]))
         return communities
     
+    def _handle_community(self, community_id: int, start_node: int, end_community: int) -> list[Triplet]:
+        pass
+
+    def _handle_transition(self, community_id: int, start_node: int, end_community: int):
+        edges = self._outside_connections[community_id][end_community][start_node]
+
+    
     def run(self) -> list[Triplet]:
+        # For dialog. QA should be different
+        # Decide the community traverse order
+        community_order = None
+        # Decide a starting point within first community with respect to the next community
+        # Will probably need a function which detects if we need multiple passes through same community, 
+        # if so we need to simulate all passes with lowest possible overlay
+        # Probably DFS and then add non-visited later on
+        start_node = None
+        # 
         pass

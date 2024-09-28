@@ -12,8 +12,8 @@ class Community:
         self.parent_graph = parent_graph
         self.graph = graph
         self.outside_connections = outside_connections
-        self.outside_connections_locallized = localize_connections(outside_connections)
-        self.summary = self.summarize_community(self.graph)
+        self.outside_connections_locallized = localize_connections(parent_graph, graph, outside_connections)
+        # self.summary = self.summarize_community()
 
     def summarize_community(self):
         vertex_descriptions = [

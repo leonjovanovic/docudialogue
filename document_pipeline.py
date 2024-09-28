@@ -4,7 +4,7 @@ import os
 from haystack import Document
 from uuid import uuid4
 
-from graphs.graph import Graph
+from graphs.graph import GraphTripletHandler
 from input_handler.input_pipeline import PreprocessingPipeline
 from triplet_extraction.classes import Triplet
 from triplet_extraction.triplet_extractor import TripletExtractionPipeline
@@ -22,7 +22,7 @@ class DocumentPipeline:
         self.docs = None
         self.triplet_extraction_pipeline = None
         self.triplets = None
-        self.graph = None
+        self.triplet_handler = None
 
     def run(self, config_path: str):
         # Step 1: Initialize pipeline
@@ -41,10 +41,10 @@ class DocumentPipeline:
         )
         logger.info(f"Total number of triplets: {len(self.triplets)}")
 
-        # Step 4: Create graph
-        self.graph = Graph(self.triplets)
+        # Step 4: Create triplet handler
+        self.triplet_handler = GraphTripletHandler(self.triplets)
         logger.info(
-            f"Graph created with {self.graph.vcount()} nodes and {self.graph.ecount()} edges."
+            f"Triplet handler created with {self.triplet_handler._graph.vcount()} nodes and {self.triplet_handler._graph.ecount()} edges."
         )
 
 
@@ -63,9 +63,9 @@ class DocumentPipeline:
         with open(os.path.join(folder_path, "config.json"), "w") as f:
             json.dump(self.config, f, indent=4)
         save_pickle(self.triplets, os.path.join(folder_path, "triplets.pkl"))
-        save_pickle(self.graph, os.path.join(folder_path, "graph.pkl"))
+        save_pickle(self.triplet_handler, os.path.join(folder_path, "triplet_handler.pkl"))
 
     def load(self, folder_path: str):
         self.config = json.load(open(os.path.join(folder_path, "config.json"), "r"))
         self.triplets = load_pickle(os.path.join(folder_path, "triplets.pkl"))
-        self.graph = load_pickle(os.path.join(folder_path, "graph.pkl"))
+        self.triplet_handler = load_pickle(os.path.join(folder_path, "triplet_handler.pkl"))
