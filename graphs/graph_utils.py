@@ -2,6 +2,7 @@ from collections import defaultdict
 import os
 from igraph import Graph
 from leidenalg import ModularityVertexPartition
+import networkx
 
 from llm_wrappers.llm_wrappers import OpenAIModel
 from llm_wrappers.pydantic_classes import SummarizedDescription
@@ -53,3 +54,45 @@ def localize_connections(graph: Graph, subgraph: Graph, connections: dict) -> di
             local_vertex_id = subgraph.vs.find(vertex_name).index
             localized_connections[neighbor_community_id].append(local_vertex_id)
     return localized_connections
+
+def order_list(length: int, order="from_ends") -> list[int]:
+    if order == "from_ends":        
+        group_order = []
+        # Iterate through the list in the specified manner
+        for i in range(length // 2):
+            group_order.append(i)          # First element, second element, etc.
+            group_order.append(length - 1 - i)   # Last element, second last element, etc.
+        # If the list has an odd number of elements, print the middle element
+        if length % 2 != 0:
+            group_order.append(length // 2)
+        return group_order
+    else:
+        raise NotImplementedError()
+    
+def order_nodes_by_centralization(graph: Graph) -> list[int]:
+    graph_networkx = networkx.Graph()
+    graph_networkx.add_edges_from(graph.get_edgelist())
+    for vertex in graph.vs:
+        graph_networkx.nodes[vertex.index].update(vertex.attributes())
+    katz_centrality = networkx.katz_centrality(graph_networkx, alpha=0.1, beta=1.0)
+    least_centralized_order = sorted(katz_centrality, key=katz_centrality.get, reverse=False)
+    return least_centralized_order
+
+def get_traverse_order(graph: Graph) -> tuple[list[int], dict[int, tuple[list[int], list[int]]]]:
+    # Group communities by connected vertices, not sure if they are sorted, if they arent, we need to do it TODO
+    community_groups = graph.connected_components()
+    sorted_community_groups = sorted(community_groups, key=len, reverse=True)
+    # First go biggest group, then smallest, then 2nd biggest etc.
+    groups_order = order_list(len(sorted_community_groups))
+    least_centralized_order = order_nodes_by_centralization(graph)
+    communities_order = {}
+    for group_id in groups_order:
+        group_nodes = sorted_community_groups[group_id]
+        first_node_id = None
+        for node_id in least_centralized_order:
+            if node_id in group_nodes:
+                first_node_id = node_id
+                break
+        communities_order[group_id] = graph.dfs(first_node_id)
+    return groups_order, communities_order
+

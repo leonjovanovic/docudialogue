@@ -3,7 +3,7 @@ import igraph as ig
 import leidenalg
 
 from graphs.community import Community
-from graphs.graph_utils import create_outside_connections, summarize_descriptions
+from graphs.graph_utils import create_outside_connections, get_traverse_order, order_list, summarize_descriptions
 from llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
 from triplet_extraction.classes import Triplet
 
@@ -76,8 +76,24 @@ class GraphTripletHandler:
     
     def run(self) -> list[Triplet]:
         # For dialog. QA should be different
-        # Decide the community traverse order
-        community_order = None
+        partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
+        aggregate_partition = partition.aggregate_partition(partition)
+        aggregate_graph: ig.Graph = aggregate_partition.graph
+        # For each group decide the community traverse order
+        order_of_groups, order_within_group = get_traverse_order(aggregate_graph)
+
+        for group_id in order_of_groups:
+            # Handle single group
+            order_of_communities, order_of_communities_parents  = order_within_group[group_id]
+            prev_community_id = None
+            for community_id in order_of_communities:
+                community = self._communities[community_id]
+                if prev_community_id:
+                    _, order_within_community = get_traverse_order_first(community.graph)
+                else:
+                    _, order_within_community = get_traverse_order(community.graph)
+                    order_of_nodes = order_within_community[0]
+                prev_community_id = community_id
         # Decide a starting point within first community with respect to the next community
         # Will probably need a function which detects if we need multiple passes through same community, 
         # if so we need to simulate all passes with lowest possible overlay
