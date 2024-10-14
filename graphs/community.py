@@ -7,8 +7,9 @@ from llm_wrappers.prompts import SUMMARIZE_GRAPH_PROMPT
 
 class Community:
     def __init__(
-        self, parent_graph: Graph, graph: Graph, outside_connections: dict[int, dict[int: list[int]]]
+        self, id: int, parent_graph: Graph, graph: Graph, outside_connections: dict[int, dict[int: list[int]]]
     ) -> None:
+        self.id = id
         self.parent_graph = parent_graph
         self.graph = graph
         self.outside_connections = outside_connections

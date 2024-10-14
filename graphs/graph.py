@@ -3,7 +3,8 @@ import igraph as ig
 import leidenalg
 
 from graphs.community import Community
-from graphs.graph_utils import create_outside_connections, get_traverse_order, order_list, summarize_descriptions
+from graphs.community_group import CommunityGroup
+from graphs.graph_utils import create_outside_connections, get_traverse_order, order_list, order_nodes_by_centralization, summarize_descriptions
 from llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
 from triplet_extraction.classes import Triplet
 
@@ -19,6 +20,8 @@ class GraphTripletHandler:
         self._initialize_graph(triplets)
         # self._summarize_graph_descriptions()
         self._communities = self._create_communities()
+        self._community_groups = self._create_community_groups()
+        self._community_groups_traversal_order = self._order_groups_for_traversal()
     
     def _initialize_graph(self, triplets: list[Triplet]):
         vertex_map = {}
@@ -64,9 +67,37 @@ class GraphTripletHandler:
         partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
         self._outside_connections = create_outside_connections(self._graph, partition)
         for idx, subgraph in enumerate(partition.subgraphs()):
-            communities.append(Community(self._graph, subgraph, self._outside_connections[idx]))
+            communities.append(Community(idx, self._graph, subgraph, self._outside_connections[idx]))
         return communities
     
+    def _create_community_groups(self) -> list[CommunityGroup]:
+        group_graph = self._group_communities()
+        groups = group_graph.connected_components()
+        community_groups = self._instantiate_community_groups(group_graph, groups)
+        return community_groups
+
+    def _group_communities(self) -> ig.Graph:
+        partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
+        aggregate_partition = partition.aggregate_partition(partition)
+        return aggregate_partition.graph
+    
+    def _instantiate_community_groups(self, group_graph: ig.Graph, groups: list[list[int]]) -> dict[int, CommunityGroup]:
+        community_ids_ordered_by_centralization = order_nodes_by_centralization(group_graph)
+        community_groups = {}
+        for idx, community_ids in enumerate(groups):
+            group_communities = {id: self._communities[id] for id in community_ids}
+            community_group = CommunityGroup(idx, group_graph, group_communities, community_ids_ordered_by_centralization)
+            community_groups[idx] = community_group
+        return community_groups
+
+    def _order_groups_for_traversal(self) -> list[int]:
+        community_groups = list(self._community_groups.values())
+        community_groups_sorted = sorted(community_groups, key=lambda cg: len(cg.communities))
+        groups_traverse_order = order_list(len(community_groups_sorted))
+        community_groups_ordered = [community_groups_sorted[group_id] for group_id in groups_traverse_order]
+        community_groups_traversal_order = [group.id for group in community_groups_ordered]
+        return community_groups_traversal_order
+
     def _handle_community(self, community_id: int, start_node: int, end_community: int) -> list[Triplet]:
         pass
 
@@ -76,7 +107,7 @@ class GraphTripletHandler:
     
     def run(self) -> list[Triplet]:
         # For dialog. QA should be different
-        group_graph = self.group_communities()
+        group_graph = self._group_communities()
         # For each group decide the community traverse order
         order_of_groups, order_within_group = get_traverse_order(group_graph)
         # CONTINUE HERE TODO
@@ -99,8 +130,3 @@ class GraphTripletHandler:
         start_node = None
         # 
         pass
-
-    def group_communities(self) -> ig.Graph:
-        partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
-        aggregate_partition = partition.aggregate_partition(partition)
-        return aggregate_partition.graph
