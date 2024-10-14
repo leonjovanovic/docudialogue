@@ -79,20 +79,35 @@ def order_nodes_by_centralization(graph: Graph) -> list[int]:
     return least_centralized_order
 
 def get_traverse_order(graph: Graph) -> tuple[list[int], dict[int, tuple[list[int], list[int]]]]:
-    # Group communities by connected vertices, not sure if they are sorted, if they arent, we need to do it TODO
-    community_groups = graph.connected_components()
-    sorted_community_groups = sorted(community_groups, key=len, reverse=True)
-    # First go biggest group, then smallest, then 2nd biggest etc.
-    groups_order = order_list(len(sorted_community_groups))
-    least_centralized_order = order_nodes_by_centralization(graph)
-    communities_order = {}
-    for group_id in groups_order:
-        group_nodes = sorted_community_groups[group_id]
-        first_node_id = None
-        for node_id in least_centralized_order:
-            if node_id in group_nodes:
-                first_node_id = node_id
-                break
-        communities_order[group_id] = graph.dfs(first_node_id)
-    return groups_order, communities_order
+    groups_traverse_ordered = order_groups_for_traversal(graph)
+    all_nodes_ordered_by_centralization = order_nodes_by_centralization(graph)
+    group_and_groups_ordered = order_each_group_for_traversal(groups_traverse_ordered, all_nodes_ordered_by_centralization, graph)
+
+    # TODO First create Group class, so each class will have traversal in its init. Group will create list of communities and each Community will handle its traversal
+    return group_and_groups_ordered
+
+
+def order_groups_for_traversal(graph: Graph):
+    groups = graph.connected_components()
+    groups_size_ordered = sorted(groups, key=len, reverse=True)
+    groups_traverse_order = order_list(len(groups_size_ordered))
+    groups_traverse_ordered = [groups_size_ordered[group_id] for group_id in groups_traverse_order]
+    return groups_traverse_ordered
+
+def order_each_group_for_traversal(groups: list[list[int]], graph_nodes_ordered: list[int], graph: Graph) -> list[list[int]]:
+    groups_ordered = [None] * len(groups)
+    for group_id, group_node_ids in enumerate(groups):
+        starter_node_id = find_starter_node_in_group(group_node_ids, graph_nodes_ordered)
+        group_ordered = graph.dfs(starter_node_id)
+        groups_ordered[group_id] = group_ordered
+    return groups_ordered
+
+
+def find_starter_node_in_group(group_node_ids: list[int], ordered_nodes: list[int]) -> int:
+    starter_node_id = None
+    for node_id in ordered_nodes:
+        if node_id in group_node_ids:
+            starter_node_id = node_id
+            break
+    return starter_node_id
 

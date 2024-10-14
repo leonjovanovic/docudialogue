@@ -76,12 +76,10 @@ class GraphTripletHandler:
     
     def run(self) -> list[Triplet]:
         # For dialog. QA should be different
-        partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
-        aggregate_partition = partition.aggregate_partition(partition)
-        aggregate_graph: ig.Graph = aggregate_partition.graph
+        group_graph = self.group_communities()
         # For each group decide the community traverse order
-        order_of_groups, order_within_group = get_traverse_order(aggregate_graph)
-
+        order_of_groups, order_within_group = get_traverse_order(group_graph)
+        # CONTINUE HERE TODO
         for group_id in order_of_groups:
             # Handle single group
             order_of_communities, order_of_communities_parents  = order_within_group[group_id]
@@ -101,3 +99,8 @@ class GraphTripletHandler:
         start_node = None
         # 
         pass
+
+    def group_communities(self) -> ig.Graph:
+        partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
+        aggregate_partition = partition.aggregate_partition(partition)
+        return aggregate_partition.graph
