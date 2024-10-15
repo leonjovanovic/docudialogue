@@ -101,12 +101,12 @@ def order_nodes_by_centralization(graph: Graph) -> list[int]:
 
 def order_each_group_for_traversal(
     community_ids: list[int], all_community_ids_ordered: list[int], graph: Graph
-) -> list[int]:
+) -> tuple[list[int], list[int]]:
     starter_node_id = find_starter_node_in_group(
         community_ids, all_community_ids_ordered
     )
-    community_ids_ordered = graph.dfs(starter_node_id)
-    return community_ids_ordered
+    community_ids_ordered, previous_community_ids = graph.dfs(starter_node_id)
+    return community_ids_ordered, previous_community_ids
 
 
 def find_starter_node_in_group(

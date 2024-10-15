@@ -4,7 +4,7 @@ import leidenalg
 
 from graphs.community import Community
 from graphs.community_group import CommunityGroup
-from graphs.graph_utils import create_outside_connections, get_traverse_order, order_list, order_nodes_by_centralization, summarize_descriptions
+from graphs.graph_utils import create_outside_connections, order_list, order_nodes_by_centralization, summarize_descriptions
 from llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
 from triplet_extraction.classes import Triplet
 
