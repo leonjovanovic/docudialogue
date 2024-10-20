@@ -86,7 +86,7 @@ class GraphTripletHandler:
         community_groups = {}
         for idx, community_ids in enumerate(groups):
             group_communities = {id: self._communities[id] for id in community_ids}
-            community_group = CommunityGroup(idx, group_graph, group_communities, community_ids_ordered_by_centralization)
+            community_group = CommunityGroup(idx, group_graph, group_communities, community_ids_ordered_by_centralization, self._outside_connections)
             community_groups[idx] = community_group
         return community_groups
 
