@@ -19,49 +19,24 @@ class CommunityGroup:
         # TODO
         # Ovde cemo ici jednu po jednu community i raditi traversal sa pocetkom i krajnjom tackom.
         print(f"CommunityGroup: {self.id}")
+        first_node_ids = []
         for idx in range(len(self.traversal_order)):
+            # TODO Mozda izbaciti IDX i direktno uzimati community_id
+            # TODO takodje inicijalizuj community = ...
             community_id = self.traversal_order[idx]
-
-            first_node_id, last_node_id = self._find_border_node_ids(idx, community_id)
-
-            
-
+            outside_connections = self.communities[community_id].outside_connections.connections
             print("=======")
             print(f"Current community {community_id}")
-
-            print(f"Outside conns: {self.outside_connections[community_id]}")
-            print(f"first node id: {first_node_id}")
-            print(f"last node id: {last_node_id}")
-            # self.communities[community_id]._traverse(first_node, last_node)
-            # outs = self.communities[community_id].outside_connections_locallized
-            # for neighbor_community_id, vertices in outs.items():
-            #     print(f"We can go to community {neighbor_community_id} with nodes {vertices}")
-
-    def _find_border_node_ids(self, idx: int, community_id: int) -> tuple[int, int]:
-        first_node_id = self._find_first_node_id(idx, community_id)
-        last_node_id = self._find_last_node_id(idx, community_id, first_node_id)
-        return first_node_id, last_node_id
-    
-    def _find_first_node_id(self, idx: int, community_id: int) -> int:
-        previous_community_id = self.traversal_order_parents[idx]
-        if previous_community_id == -1:
-            first_node_id = -1
-        else:
-            first_node_id = list(self.outside_connections[community_id][previous_community_id].keys())[0]
-            return first_node_id
-    
-    def _find_last_node_id(self, idx: int, community_id: int, first_node_id: int) -> int:
-        previous_community_id = self.traversal_order_parents[idx]
-        if idx == len(self.traversal_order) - 1:
-            # next_community_id = -1
-            last_node_id = -1
-        elif previous_community_id == self.traversal_order_parents[idx + 1]:
-            # next_community_id = previous_community_id
-            last_node_id = first_node_id
-        else:
-            next_community_id = self.traversal_order[idx + 1]
-            last_node_id = self.outside_connections[community_id][next_community_id]
-        return last_node_id
+            # print(f"Outside conns: {self.communities[community_id].outside_connections.connections}")
+            ordered_next_connections, ordered_border_node_ids = [], []
+            for child_community_id, parent_communitity_id in zip(self.traversal_order, self.traversal_order_parents):
+                if parent_communitity_id == community_id:
+                    connections_towards_community = outside_connections[child_community_id]
+                    ordered_next_connections.append(connections_towards_community)
+                    ordered_border_node_ids.append([conn[0] for conn in connections_towards_community])
+            print(ordered_next_connections)
+            print(ordered_border_node_ids)
+            self.communities[community_id].traverse(first_node_ids, ordered_border_node_ids)
     
     # TODO:
     # 1. Promeni outside connections da lepo ima node iz source, koji edge i node iz target communitija za svaki crossing
