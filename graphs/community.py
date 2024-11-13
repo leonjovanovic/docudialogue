@@ -19,19 +19,17 @@ class Community:
         # self.summary = self.summarize_community()
 
     def traverse(self, first_node_ids: list[int], ordered_border_node_ids: list[list[int]]) -> None:
-
         # Lokalizuj sve nodove
         ordered_border_node_ids_local = []
         for community_exits in ordered_border_node_ids:
             community_exits_local = [self.localized_node_ids[node_id] for node_id in community_exits]
             ordered_border_node_ids_local.append(community_exits_local)
 
-        mid_ids, end_ids = None, None
-        if len(ordered_border_node_ids_local) > 1:
+        mid_ids, end_ids = [], []
+        if len(ordered_border_node_ids_local) > 0:
             end_ids = ordered_border_node_ids_local[-1]
-            if len(ordered_border_node_ids_local) > 2:
+            if len(ordered_border_node_ids_local) > 1:
                 mid_ids = ordered_border_node_ids_local[:-1]
-
 
         best_attempt = []
         path = []
@@ -40,27 +38,22 @@ class Community:
             first_node_ids_local = [self.localized_node_ids[id] for id in first_node_ids]
         else:
             first_node_ids_local = self.graph.vs.indices
-            if mid_ids:
-                for id in end_ids:
+            for id in end_ids:
+                first_node_ids_local.remove(id)
+            for ids in mid_ids[1:]:
+                for id in ids:
                     first_node_ids_local.remove(id)
-                for ids in mid_ids[1:]:
-                    for id in ids:
-                        first_node_ids_local.remove(id)
             
-            
+        print(self.graph.vs.indices)
         for start_id in first_node_ids_local:
-            found_path, path = modified_dfs(self.graph, start_id, end_ids)
+            print(start_id, mid_ids, end_ids)
+            found_path, path = modified_dfs(self.graph, start_id, mid_ids, end_ids)
+            print(f"Izlaz: {found_path}, {path}")
             if not found_path:
                 if len(path) > len(best_attempt):
                     best_attempt = path
             else:
                 break
-
-
-        print(first_node_ids_local)
-        print(ordered_border_node_ids)
-        print(ordered_border_node_ids_local)
-        print(found_path, path)
 
     def summarize_community(self):
         vertex_descriptions = [

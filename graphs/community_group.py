@@ -36,7 +36,10 @@ class CommunityGroup:
                     ordered_border_node_ids.append([conn[0] for conn in connections_towards_community])
             print(ordered_next_connections)
             print(ordered_border_node_ids)
+            print("ENTERINGGGG")
             self.communities[community_id].traverse(first_node_ids, ordered_border_node_ids)
+            print("EXITINGGGGG")
+            break # TODO DELETE
     
     # TODO:
     # 1. Promeni outside connections da lepo ima node iz source, koji edge i node iz target communitija za svaki crossing

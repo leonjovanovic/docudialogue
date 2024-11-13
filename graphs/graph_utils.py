@@ -146,46 +146,101 @@ def modified_dfs(graph: Graph, current: int, target_list: list[int], target: int
     visited.remove(current)
 
 
-def modified_dfs(graph: Graph, start_id: int, end_ids: list[int]):
+def modified_dfs(graph: Graph, start_id: int, mid_ids: list[list[int]], end_ids: list[int]):
     """Perform a modified DFS traversal on the graph to ensure it starts and ends with specific nodes."""
     # Helper function to perform DFS
-    def dfs(node_id: int, end_ids_curr: list[int], visited: set, path: list[int], best_attempt: list[int]):
-        visited.add(node_id)
-        path.append(node_id)
-        
-        # If we've visited all nodes and the last node is the end node, we are done
-        if node_id in end_ids_curr:
-            end_ids_curr.remove(node_id)
+    def dfs(node_id: int, mid_ids: list[list[int]], end_ids_curr: list[int], visited: set, path: list[int], go_back_idx: int = None):
+        if go_back_idx != None:
+            print(f"(Backtracking {go_back_idx}) Node {node_id} Next potential: {graph.neighbors(node_id)}, Curr state: Path: {path}, Mids: {mid_ids}, Ends: {end_ids}")
+        else:
+            print(f"Node {node_id} Next potential: {graph.neighbors(node_id)}, Curr state: Path: {path}, Mids: {mid_ids}, Ends: {end_ids}")
+        if mid_ids:
+            if node_id in mid_ids[0]:
+                mid_ids = mid_ids.pop(0)
+                
+                visited.add(node_id)
+                path.append(node_id)
 
-            if len(visited) == graph.vcount():
-                return True
+                for neighbor in graph.neighbors(node_id):
+                    if neighbor not in visited:
+                        if dfs(neighbor, mid_ids, end_ids_curr, visited, path):
+                            return True
+                        
+                # Backtrack if no valid path found from current node
+                visited.remove(node_id)
+                path.pop()
+                if node_id in end_ids:
+                    end_ids_curr.append(node_id)
+                return False
             else:
-                if len(end_ids_curr) == 0:
-                    best_attempt = path 
-                    return False
-        
-        # Explore neighbors
-        for neighbor in graph.neighbors(node_id):
-            if neighbor not in visited:
-                if dfs(neighbor, visited, path, best_attempt):
+                visited.remove(node_id)
+                path.pop()
+                if node_id in end_ids:
+                    end_ids_curr.append(node_id)
+                return False
+        else:
+            visited.add(node_id)
+            path.append(node_id)
+            
+            # If we've visited all nodes and the last node is the end node, we are done
+            if node_id in end_ids_curr:
+                print(f"END CHECKING {visited}, {len(visited)}=={graph.vcount()}")
+                if len(visited) == graph.vcount():
                     return True
-        
-        # Backtrack if no valid path found from current node
-        visited.remove(node_id)
-        path.pop()
-        if node_id in end_ids:
-            end_ids_curr.append(node_id)
-        return False
+                    
+            
+            # Explore neighbors to find new non ending nodes
+            for neighbor in graph.neighbors(node_id):
+                if neighbor not in visited and neighbor not in end_ids:
+                    if dfs(neighbor, mid_ids, end_ids_curr, visited, path):
+                        return True
+                    
+            # Explore neighbors to find new ending nodes
+            for neighbor in graph.neighbors(node_id):
+                if neighbor not in visited and neighbor in end_ids:
+                    if dfs(neighbor, mid_ids, end_ids_curr, visited, path):
+                        return True
+                    
+            # Explore neighbors to backtrack
+            for neighbor in graph.neighbors(node_id):
+                if go_back_idx != None:
+                    # We have already gone back and we need to follow certain path
+                    # If we backtracked to start, we cant go further.
+                    if go_back_idx > 0:
+                        if neighbor == path[go_back_idx-1]:   
+                            # WRAP IN FUNCTION Get first appearence of that node 
+                            for idx, _ in enumerate(path):
+                                if path[idx] == neighbor:
+                                    go_back_idx = idx
+                                    print(idx)
+                                    break
+                            if dfs(neighbor, mid_ids, end_ids_curr, visited, path, go_back_idx):
+                                return True
+                else:
+                    # This is first time to potentially backtrack
+                    if len(path) > 1:
+                        if neighbor == path[-2]:
+                            # WRAP IN FUNCTION Get first appearence of that node 
+                            for idx, _ in enumerate(path):
+                                if path[idx] == neighbor:
+                                    go_back_idx = idx
+                                    break
+                            if dfs(neighbor, mid_ids, end_ids_curr, visited, path, go_back_idx):
+                                return True
+            
+            # Backtrack if no valid path found from current node
+            print(f"Failed, backtracking path: {path}, visited: {visited}, {node_id}")
+            path.pop()
+            if node_id not in path:
+                visited.remove(node_id)
+            return False
     
     end_ids_curr = [id for id in end_ids]
     visited = set()
     path = []
-    best_attempt = []
 
-    if dfs(start_id, end_ids_curr, visited, path, best_attempt):
-        return True, path
-    else:
-        return False, best_attempt
+    found_path = dfs(start_id, mid_ids, end_ids_curr, visited, path)
+    return found_path, path
     
     # Input: Graph, start, mids, end
     # Krcemo od start noda (dodajemo start u visited i u path)
