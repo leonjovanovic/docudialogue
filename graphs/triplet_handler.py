@@ -66,6 +66,7 @@ class GraphTripletHandler:
         communities = []
         partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
         self._outside_connections = create_outside_connections(self._graph, partition)
+        print(f"self._outside_connections: {[f"{id}: {coms.connections}" for id, coms in self._outside_connections.items()]}")
         for idx, subgraph in enumerate(partition.subgraphs()):
             communities.append(Community(idx, self._graph, subgraph, self._outside_connections[idx]))
         return communities
@@ -85,6 +86,7 @@ class GraphTripletHandler:
         community_ids_ordered_by_centralization = order_nodes_by_centralization(group_graph)
         community_groups = {}
         for idx, community_ids in enumerate(groups):
+            print(f"NEW COMMUNITY GROUP WOOO = {idx} {community_ids}")
             group_communities = {id: self._communities[id] for id in community_ids}
             community_group = CommunityGroup(idx, group_graph, group_communities, community_ids_ordered_by_centralization, self._outside_connections)
             community_groups[idx] = community_group

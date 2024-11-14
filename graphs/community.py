@@ -1,7 +1,7 @@
 from collections import defaultdict
 from igraph import Graph, Vertex, Edge
 
-from graphs.graph_utils import CommunityOutsideConnections, localize_node_ids, modified_dfs, summarize_descriptions
+from graphs.graph_utils import CommunityOutsideConnections, globalize_node_ids, localize_node_ids, modified_dfs, summarize_descriptions
 from llm_wrappers.prompts import SUMMARIZE_GRAPH_PROMPT
 
 
@@ -14,6 +14,7 @@ class Community:
         self.graph = graph
         self.outside_connections = outside_connections
         self.localized_node_ids = localize_node_ids(parent_graph, graph)
+        self.globalized_node_ids = globalize_node_ids(parent_graph, graph)
         self.traversal_order = None
         self.traversal_order_parents = None
         # self.summary = self.summarize_community()
@@ -33,6 +34,7 @@ class Community:
 
         best_attempt = []
         path = []
+        mid_exits = []
 
         if first_node_ids:
             first_node_ids_local = [self.localized_node_ids[id] for id in first_node_ids]
@@ -44,16 +46,26 @@ class Community:
                 for id in ids:
                     first_node_ids_local.remove(id)
             
-        print(self.graph.vs.indices)
+        print(f"all graph indices: {self.graph.vs.indices}")
+        print(f"first nodes local: {first_node_ids_local}")
         for start_id in first_node_ids_local:
-            print(start_id, mid_ids, end_ids)
-            found_path, path = modified_dfs(self.graph, start_id, mid_ids, end_ids)
-            print(f"Izlaz: {found_path}, {path}")
+            print(f"=> Starting: {start_id}, mid: {mid_ids}, end: {end_ids}")
+            found_path, path, mid_exits = modified_dfs(self.graph, start_id, mid_ids, end_ids)
+            print(f"=> Izlaz: {found_path}, {path}, {mid_exits}")
             if not found_path:
                 if len(path) > len(best_attempt):
                     best_attempt = path
+                # TODO If path wasnt found
             else:
+                best_attempt = path
                 break
+
+        decided_border_node_ids = []
+        for mid_exit in mid_exits:
+            decided_border_node_ids.append(self.globalized_node_ids[mid_exit])
+        decided_border_node_ids.append(self.globalized_node_ids[best_attempt[-1]])
+        print(decided_border_node_ids)
+        return decided_border_node_ids
 
     def summarize_community(self):
         vertex_descriptions = [

@@ -1,3 +1,8 @@
 * Multiprocecssing for triplets extraction (differentiate between multiprocessing for each document and for each chunk) and graph summarization
 * Find a way to merge very similar entities
 * split entity types into 2 gpt calls, second to check.
+
+## traversal
+* do random init so few runs are tried and best selected
+* format code
+* connect everything for global traversal
