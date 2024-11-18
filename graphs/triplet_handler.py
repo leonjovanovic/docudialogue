@@ -22,6 +22,7 @@ class GraphTripletHandler:
         self._communities = self._create_communities()
         self._community_groups = self._create_community_groups()
         self._community_groups_traversal_order = self._order_groups_for_traversal()
+        self.global_traversal, self.global_traversal_parents = self.visit_community_groups()
     
     def _initialize_graph(self, triplets: list[Triplet]):
         vertex_map = {}
@@ -66,12 +67,12 @@ class GraphTripletHandler:
         communities = []
         partition = leidenalg.find_partition(self._graph, leidenalg.ModularityVertexPartition)
         self._outside_connections = create_outside_connections(self._graph, partition)
-        print(f"self._outside_connections: {[f"{id}: {coms.connections}" for id, coms in self._outside_connections.items()]}")
+        # print(f"self._outside_connections: {[f"{id}: {coms.connections}" for id, coms in self._outside_connections.items()]}")
         for idx, subgraph in enumerate(partition.subgraphs()):
             communities.append(Community(idx, self._graph, subgraph, self._outside_connections[idx]))
         return communities
     
-    def _create_community_groups(self) -> list[CommunityGroup]:
+    def _create_community_groups(self) -> dict[int, CommunityGroup]:
         group_graph = self._group_communities()
         groups = group_graph.connected_components()
         community_groups = self._instantiate_community_groups(group_graph, groups)
@@ -86,7 +87,7 @@ class GraphTripletHandler:
         community_ids_ordered_by_centralization = order_nodes_by_centralization(group_graph)
         community_groups = {}
         for idx, community_ids in enumerate(groups):
-            print(f"NEW COMMUNITY GROUP WOOO = {idx} {community_ids}")
+            # print(f"NEW COMMUNITY GROUP WOOO = {idx} {community_ids}")
             group_communities = {id: self._communities[id] for id in community_ids}
             community_group = CommunityGroup(idx, group_graph, group_communities, community_ids_ordered_by_centralization, self._outside_connections)
             community_groups[idx] = community_group
@@ -99,6 +100,19 @@ class GraphTripletHandler:
         community_groups_ordered = [community_groups_sorted[group_id] for group_id in groups_traverse_order]
         community_groups_traversal_order = [group.id for group in community_groups_ordered]
         return community_groups_traversal_order
+
+    def visit_community_groups(self):
+        traverse_order = []
+        traverse_order_parents = []
+        prev_group = None
+        for group in self._community_groups.values():
+            group.visit_communities()
+            traverse_order.extend(group.global_traversal)  
+            parents = group.global_traversal_parents
+            parents[0] = prev_group.global_traversal[-1] if prev_group else None
+            traverse_order_parents.extend(parents)
+            prev_group = group
+        return traverse_order, traverse_order_parents
 
     def _handle_community(self, community_id: int, start_node: int, end_community: int) -> list[Triplet]:
         pass

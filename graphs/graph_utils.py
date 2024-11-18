@@ -143,7 +143,7 @@ def modified_dfs(graph: Graph, current: int, target_list: list[int], target: int
         target = target_list[0] if len(target_list) > 0 else -1  # Move to the next target node
     
     # Explore neighbors
-    print(current)
+    # print(current)
     for neighbor in graph.neighbors(current, mode="out"):
         neighbor_id = graph.vs[neighbor]["id"]  # Get the actual ID of the neighbor
         if neighbor_id not in visited:
@@ -157,10 +157,10 @@ def modified_dfs(graph: Graph, start_id: int, mid_ids: list[list[int]], end_ids:
     """Perform a modified DFS traversal on the graph to ensure it starts and ends with specific nodes."""
     # Helper function to perform DFS
     def dfs(node_id: int, mid_ids: list[list[int]], end_ids: list[int], visited: set, path: list[int], mid_order: list[int], go_back_idx: int = None):
-        if go_back_idx != None:
-            print(f"(Backtracking {go_back_idx}) Node {node_id} Next potential: {graph.neighbors(node_id)}, Curr state: Path: {path}, Mids: {mid_ids}, Ends: {end_ids}")
-        else:
-            print(f"Node {node_id} Next potential: {graph.neighbors(node_id)}, Curr state: Path: {path}, Mids: {mid_ids}, Ends: {end_ids}")
+        # if go_back_idx != None:
+        #     print(f"(Backtracking {go_back_idx}) Node {node_id} Next potential: {graph.neighbors(node_id)}, Curr state: Path: {path}, Mids: {mid_ids}, Ends: {end_ids}")
+        # else:
+        #     print(f"Node {node_id} Next potential: {graph.neighbors(node_id)}, Curr state: Path: {path}, Mids: {mid_ids}, Ends: {end_ids}")
 
         visited.add(node_id)
         path.append(node_id)
@@ -173,7 +173,7 @@ def modified_dfs(graph: Graph, start_id: int, mid_ids: list[list[int]], end_ids:
         else:
             # If we've visited all nodes and the last node is the end node, we are done
             if node_id in end_ids or not end_ids:
-                print(f"END CHECKING {visited}, {len(visited)}=={graph.vcount()}")
+                # print(f"END CHECKING {visited}, {len(visited)}=={graph.vcount()}")
                 if len(visited) == graph.vcount():
                     return True
                 
@@ -222,7 +222,7 @@ def modified_dfs(graph: Graph, start_id: int, mid_ids: list[list[int]], end_ids:
                             return True
         
         # Backtrack if no valid path found from current node
-        print(f"Failed, backtracking path: {path}, visited: {visited}, {node_id}")
+        # print(f"Failed, backtracking path: {path}, visited: {visited}, {node_id}")
         if mid_order and mid_order[-1][1] == len(path):
             mid_order.pop()
         path.pop()
@@ -236,7 +236,7 @@ def modified_dfs(graph: Graph, start_id: int, mid_ids: list[list[int]], end_ids:
     mid_order = []
 
     found_path = dfs(start_id, mid_ids, end_ids_curr, visited, path, mid_order)
-    print(f"OPOPOPO {mid_order}, {path[-1] if path else []}")
+    # print(f"OPOPOPO {mid_order}, {path[-1] if path else []}")
     mid_exits = [m[0] for m in mid_order]
     return found_path, path, mid_exits
     
