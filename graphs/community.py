@@ -1,7 +1,7 @@
 from igraph import Graph
 
 from graphs.graph_utils import (
-    CommunityOutsideConnections,
+    CommunityNeighbourConnections,
     GlobalBorderNodes,
     LocalBorderNodes,
     map_nodes_between_graphs,
@@ -22,15 +22,15 @@ class Community:
         id: int,
         parent_graph: Graph,
         graph: Graph,
-        outside_connections: CommunityOutsideConnections,
+        neighbour_connections: CommunityNeighbourConnections,
     ) -> None:
         self.id = id
         self.parent_graph = parent_graph
         self.graph = graph
-        self.outside_connections = outside_connections
+        self.neighbour_connections = neighbour_connections
         self.mapped_nodes = map_nodes_between_graphs(parent_graph, graph)
-        self.traversal_order = None
-        self.traversal_order_parents = None
+        self.traversal_order = None # To be set in traverse method
+        self.traversal_order_parents = None # To be set in traverse method
         # self.summary = self.summarize_community()
 
     def _split_borders_into_mid_and_last(
@@ -119,11 +119,11 @@ class Community:
         global_exit_ids = self.format_chosen_borders(mid_borders_chosen_ids, best_attempt)
         return best_attempt, global_exit_ids
 
-    def traverse(
+    def traverse_and_save(
         self,
         entry_node_ids: GlobalBorderNodes | None,
         ordered_borders_exit_nodes: list[GlobalBorderNodes],
-    ) -> None:
+    ) -> list[int]:
         """
         Given allowed entry points and in which order should he reach border nodes,
         traverse the community graph to find the best path through it.

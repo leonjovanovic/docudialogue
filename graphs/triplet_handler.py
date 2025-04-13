@@ -28,6 +28,7 @@ class GraphTripletHandler:
         # self._summarize_graph_descriptions()
         self._communities = self._create_communities()
         self._community_groups = self._create_community_groups()
+        # TODO CONTINUE HERE:
         self._community_groups_traversal_order = self._order_groups_for_traversal()
         self.global_traversal, self.global_traversal_parents = (
             self.visit_community_groups()
@@ -101,29 +102,46 @@ class GraphTripletHandler:
         Create communities from iGraph:
         1. Apply the Leiden algorithm on iGraph we previously populated with entites and relationships.
         2. For each community, find connections that connect that community to neightbouring communties.
-            Connection represent 3 ids: 
+            Connection represent 3 ids:
                 a) current community exit node id
                 b) neighbour community enter node id
                 c) connecting edge id
         3. Create Community object for each community and add it to the list of communities.
         4. Return the list of communities.
         """
-
-        communities = []
         partition = leidenalg.find_partition(
             self._graph, leidenalg.ModularityVertexPartition
         )
-        self._outside_connections = find_neighbour_connections(self._graph, partition)
+        communities = []
+        self._neighbour_connections = find_neighbour_connections(
+            self._graph, partition
+        )
         for idx, subgraph in enumerate(partition.subgraphs()):
             communities.append(
-                Community(idx, self._graph, subgraph, self._outside_connections[idx])
+                Community(idx, self._graph, subgraph, self._neighbour_connections[idx])
             )
         return communities
 
     def _create_community_groups(self) -> dict[int, CommunityGroup]:
+        """
+        Create community groups from iGraph:
+        1. Create a new graph from the partition of the original graph using the aggregate_partition method.
+        2. Order all nodes (1 node = 1 community) of the new graph by their centrality.
+        3. Create a CommunityGroup object for each community in the partition and add it to the dictionary of community groups.
+        """
         group_graph = self._group_communities()
-        groups = group_graph.connected_components()
-        community_groups = self._instantiate_community_groups(group_graph, groups)
+        community_ids_ordered = order_nodes_by_centralization(group_graph)
+        community_groups = {}
+        community_groups_from_partition = group_graph.connected_components()
+        for idx, community_ids in enumerate(community_groups_from_partition):
+            community_group = CommunityGroup(
+                id=idx,
+                parent_graph=group_graph,
+                communities={id: self._communities[id] for id in community_ids},
+                community_ids_ordered=community_ids_ordered,
+                neighbour_connections=self._neighbour_connections,
+            )
+            community_groups[idx] = community_group
         return community_groups
 
     def _group_communities(self) -> ig.Graph:
@@ -132,26 +150,6 @@ class GraphTripletHandler:
         )
         aggregate_partition = partition.aggregate_partition(partition)
         return aggregate_partition.graph
-
-    def _instantiate_community_groups(
-        self, group_graph: ig.Graph, groups: list[list[int]]
-    ) -> dict[int, CommunityGroup]:
-        community_ids_ordered_by_centralization = order_nodes_by_centralization(
-            group_graph
-        )
-        community_groups = {}
-        for idx, community_ids in enumerate(groups):
-            # print(f"NEW COMMUNITY GROUP WOOO = {idx} {community_ids}")
-            group_communities = {id: self._communities[id] for id in community_ids}
-            community_group = CommunityGroup(
-                idx,
-                group_graph,
-                group_communities,
-                community_ids_ordered_by_centralization,
-                self._outside_connections,
-            )
-            community_groups[idx] = community_group
-        return community_groups
 
     def _order_groups_for_traversal(self) -> list[int]:
         community_groups = list(self._community_groups.values())
@@ -188,7 +186,7 @@ class GraphTripletHandler:
     def _handle_transition(
         self, community_id: int, start_node: int, end_community: int
     ):
-        edges = self._outside_connections[community_id][end_community][start_node]
+        edges = self._neighbour_connections[community_id][end_community][start_node]
 
     def run(self) -> list[Triplet]:
         # For dialog. QA should be different

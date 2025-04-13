@@ -9,7 +9,7 @@ from llm_wrappers.llm_wrappers import OpenAIModel
 from llm_wrappers.pydantic_classes import SummarizedDescription
 
 
-class CommunityOutsideConnections:
+class CommunityNeighbourConnections:
     def __init__(self, community_id: int):
         self.community_id = community_id
         self.connections = defaultdict(list)
@@ -18,8 +18,6 @@ class CommunityOutsideConnections:
         self, neighbor_community_id: int, connection: tuple[int, int, int]
     ) -> None:
         self.connections[neighbor_community_id].append(connection)
-
-
 
 
 class BorderNodes:
@@ -60,9 +58,9 @@ def summarize_descriptions(descriptions: list[str] | dict, prompt: str) -> str:
 
 def _find_neighbour_connections(
     community_id: int, graph: Graph, partition: ModularityVertexPartition
-) -> CommunityOutsideConnections:
+) -> CommunityNeighbourConnections:
     """Finds all connections between communities in the graph."""
-    outside_connections = CommunityOutsideConnections(community_id)
+    outside_connections = CommunityNeighbourConnections(community_id)
     for edge_id, crossing_exists in enumerate(partition.crossing()):
         if crossing_exists:
             node1, node2 = graph.es[edge_id].tuple
@@ -86,7 +84,7 @@ def _find_neighbour_connections(
 
 def find_neighbour_connections(
     graph: Graph, partition: ModularityVertexPartition
-) -> dict[str, CommunityOutsideConnections]:
+) -> dict[str, CommunityNeighbourConnections]:
     """
     Finds all connections between communities in the graph.
     Returns a dictionary where keys are community IDs and values
@@ -152,6 +150,10 @@ def order_list(length: int, order="from_ends") -> list[int]:
 
 
 def order_nodes_by_centralization(graph: Graph) -> list[int]:
+    """
+    Order nodes by their Katz centrality in the graph.
+    The nodes with the most centrality are ordered first.
+    """
     graph_networkx = networkx.Graph()
     graph_networkx.add_edges_from(graph.get_edgelist())
     for vertex in graph.vs:
@@ -163,17 +165,23 @@ def order_nodes_by_centralization(graph: Graph) -> list[int]:
     return least_centralized_order
 
 
-def order_each_group_for_traversal(
-    community_ids: list[int], all_community_ids_ordered: list[int], graph: Graph
+def order_group_nodes_for_traversal(
+    group_node_ids: list[int], graph_node_ids_ordered: list[int], graph: Graph
 ) -> tuple[list[int], list[int]]:
-    starter_node_id = find_starter_node_in_group(
-        community_ids, all_community_ids_ordered
+    """
+    Order nodes in the group for traversal:
+    1. Find the first node in the ordered list that is also in the group node IDs.
+    2. Perform a DFS traversal starting from that node.
+    3. Return the ordered community IDs and the previous community IDs.
+    """
+    starter_node_id = _find_starter_node_in_group(
+        group_node_ids, graph_node_ids_ordered
     )
     community_ids_ordered, previous_community_ids = graph.dfs(starter_node_id)
     return community_ids_ordered, previous_community_ids
 
 
-def find_starter_node_in_group(
+def _find_starter_node_in_group(
     group_node_ids: list[int], ordered_nodes: list[int]
 ) -> int:
     starter_node_id = None
@@ -185,7 +193,10 @@ def find_starter_node_in_group(
 
 
 def modified_dfs(
-    graph: Graph, entry_node_id: int, mid_borders: list[LocalBorderNodes], last_border: LocalBorderNodes
+    graph: Graph,
+    entry_node_id: int,
+    mid_borders: list[LocalBorderNodes],
+    last_border: LocalBorderNodes,
 ):
     """Perform a modified DFS traversal on the graph to ensure it starts and ends with specific nodes."""
 
@@ -302,14 +313,17 @@ def modified_dfs(
     path = []
     mid_order = []
     mid_node_ids = [border.node_ids for border in mid_borders]
-    print(f"Starting DFS from node {entry_node_id} with mid nodes {mid_node_ids} and end nodes {last_border.node_ids}")
+    print(
+        f"Starting DFS from node {entry_node_id} with mid nodes {mid_node_ids} and end nodes {last_border.node_ids}"
+    )
     found_path = dfs(
-        node_id=entry_node_id, 
-        mid_ids=mid_node_ids, 
-        end_ids=last_border.node_ids, 
-        visited=visited, 
-        path=path, 
-        mid_order=mid_order)
+        node_id=entry_node_id,
+        mid_ids=mid_node_ids,
+        end_ids=last_border.node_ids,
+        visited=visited,
+        path=path,
+        mid_order=mid_order,
+    )
 
     mid_exits = [m[0] for m in mid_order]
     return found_path, path, mid_exits
