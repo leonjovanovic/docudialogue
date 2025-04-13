@@ -4,7 +4,7 @@ import os
 from haystack import Document
 from uuid import uuid4
 
-from graphs.triplet_handler import GraphTripletHandler
+from graphs.triplet_handler import AbstractTripletHandler, GraphTripletHandler
 from input_handler.input_pipeline import PreprocessingPipeline
 from triplet_extraction.classes import Triplet
 from triplet_extraction.triplet_extractor import TripletExtractionPipeline
@@ -18,18 +18,18 @@ logger.setLevel(logging.INFO)
 class DocumentPipeline:
     def __init__(self) -> None:
         self.config = None
-        self.preprocessing_pipeline = None
-        self.docs = None
-        self.triplet_extraction_pipeline = None
-        self.triplets = None
-        self.triplet_handler = None
+        self.preprocessing_pipeline: PreprocessingPipeline = None
+        self.docs: list[list[Document]] = None
+        self.triplet_extraction_pipeline: TripletExtractionPipeline = None
+        self.triplets: list[Triplet] = None
+        self.triplet_handler: AbstractTripletHandler = None
 
     def run(self, config_path: str):
         # Step 1: Initialize pipeline
         # self._initialize_pipeline(config_path)
 
         # # Step 2: Process all documents
-        # self.docs: list[list[Document]] = [
+        # self.docs = [
         #     self.preprocessing_pipeline.run(path)["document_splitter"]["documents"]
         #     for path in self.config["input"]["file_paths"]
         # ]

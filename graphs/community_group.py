@@ -2,7 +2,7 @@ from collections import defaultdict
 from igraph import Graph
 
 from graphs.community import Community
-from graphs.graph_utils import order_each_group_for_traversal
+from graphs.graph_utils import order_each_group_for_traversal, GlobalBorderNodes
 
 
 class CommunityGroup:
@@ -24,7 +24,10 @@ class CommunityGroup:
         # print(f"CommunityGroup: {self.id}")
         entrances = dict()
         first_node_ids = []
+        print(self.traversal_order)
+        print(self.traversal_order_parents)
         for community_id, prev_community_id in zip(self.traversal_order, self.traversal_order_parents):
+            print(community_id, prev_community_id)
             community = self.communities[community_id]
             outside_connections = community.outside_connections.connections
             # print("=======")
@@ -45,6 +48,9 @@ class CommunityGroup:
                 ordered_border_node_ids.append(first_node_ids)
             # print(f"ordered_border_node_ids: {ordered_border_node_ids}")
             # print("ENTERINGGGG")
+            # TODO HEREEEE
+            first_node_ids = GlobalBorderNodes(first_node_ids) if first_node_ids else None
+            ordered_border_node_ids = [GlobalBorderNodes(node_ids) for node_ids in ordered_border_node_ids]
             decided_border_node_ids = community.traverse(first_node_ids, ordered_border_node_ids)
             # print(f"decided_border_node_ids: {decided_border_node_ids}")
 
