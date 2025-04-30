@@ -5,6 +5,7 @@ import leidenalg
 from graphs.community import Community
 from graphs.community_group import CommunityGroup
 from graphs.graph_utils import (
+    OrderType,
     find_neighbour_connections,
     order_list,
     order_nodes_by_centralization,
@@ -23,12 +24,24 @@ class AbstractTripletHandler(ABC):
 
 class GraphTripletHandler:
     def __init__(self, triplets: list[Triplet]):
+        """
+        GraphTripletHandler creates a graph structures from triplets.
+        Steps:
+        1. Create a graph with nodes and edges from triplets.
+        2. Create communities from the graph using the Leiden algorithm
+        3. Create traversal order for each community using a modified DFS algorithm
+        which has multiple potential and exits (connections to other communities).
+        4. Create a new graph with communities as nodes and edges between them.
+        5. Create traversal order for new graph using same way as for each community.
+        6. Using all traversal orders, visit every node and create a global traversal
+        order for the whole graph.
+        """
+
         self._graph = ig.Graph(directed=False)
         self._initialize_graph(triplets)
         # self._summarize_graph_descriptions()
         self._communities = self._create_communities()
         self._community_groups = self._create_community_groups()
-        # TODO CONTINUE HERE:
         self._community_groups_traversal_order = self._order_groups_for_traversal()
         self.global_traversal, self.global_traversal_parents = (
             self.visit_community_groups()
@@ -113,9 +126,7 @@ class GraphTripletHandler:
             self._graph, leidenalg.ModularityVertexPartition
         )
         communities = []
-        self._neighbour_connections = find_neighbour_connections(
-            self._graph, partition
-        )
+        self._neighbour_connections = find_neighbour_connections(self._graph, partition)
         for idx, subgraph in enumerate(partition.subgraphs()):
             communities.append(
                 Community(idx, self._graph, subgraph, self._neighbour_connections[idx])
@@ -152,68 +163,42 @@ class GraphTripletHandler:
         return aggregate_partition.graph
 
     def _order_groups_for_traversal(self) -> list[int]:
-        community_groups = list(self._community_groups.values())
-        community_groups_sorted = sorted(
-            community_groups, key=lambda cg: len(cg.communities)
-        )
-        groups_traverse_order = order_list(len(community_groups_sorted))
-        community_groups_ordered = [
-            community_groups_sorted[group_id] for group_id in groups_traverse_order
-        ]
-        community_groups_traversal_order = [
-            group.id for group in community_groups_ordered
-        ]
-        return community_groups_traversal_order
+        """
+        Order community groups for traversal. The order is determined by
+        the number of communities in each group. The groups are traversed
+        iteratively from both ends towards the center to "buffer" small
+        communities between big.
+
+        Returns: a list of group ids in the order they should be traversed.
+        """
+        groups = list(self._community_groups.values())
+        groups_sorted_by_size = sorted(groups, key=lambda cg: len(cg.communities), reverse=True)
+        traverse_order = order_list(len(groups_sorted_by_size), OrderType.FROM_ENDS)
+
+        traverse_order_group_ids = []
+        for graph_id in traverse_order:
+            group_in_sorted_list = groups_sorted_by_size[graph_id]
+            traverse_order_group_ids.append(group_in_sorted_list.id)
+        return traverse_order_group_ids
 
     def visit_community_groups(self):
-        traverse_order = []
-        traverse_order_parents = []
-        prev_group = None
-        for group in self._community_groups.values():
-            group.visit_communities()
+        """
+        Based on previously defined traversal order within each community,
+        community group and all community groups, visit all nodes in the graph.
+        During the global traversal, keep track of both global node ids and their parents.
+        """
+
+        traverse_order, traverse_order_parents = [], []
+        for group_id in self._community_groups_traversal_order:
+            group = self._community_groups[group_id]
+            group.traverse_through_group()
+            # First we store traversal parents because we need to set first
+            # parent based on last visited community in the previous group.
+            # First parent will stay None.
+            if traverse_order:
+                group.global_traversal_parents[0] = traverse_order[-1]
+            traverse_order_parents.extend(group.global_traversal_parents)
+            # Take global node ids from traversed community
+            # and add them to the global traversal order
             traverse_order.extend(group.global_traversal)
-            parents = group.global_traversal_parents
-            parents[0] = prev_group.global_traversal[-1] if prev_group else None
-            traverse_order_parents.extend(parents)
-            prev_group = group
         return traverse_order, traverse_order_parents
-
-    def _handle_community(
-        self, community_id: int, start_node: int, end_community: int
-    ) -> list[Triplet]:
-        pass
-
-    def _handle_transition(
-        self, community_id: int, start_node: int, end_community: int
-    ):
-        edges = self._neighbour_connections[community_id][end_community][start_node]
-
-    def run(self) -> list[Triplet]:
-        # For dialog. QA should be different
-        group_graph = self._group_communities()
-        # For each group decide the community traverse order
-        order_of_groups, order_within_group = get_traverse_order(group_graph)
-        # CONTINUE HERE TODO
-        for group_id in order_of_groups:
-            # Handle single group
-            order_of_communities, order_of_communities_parents = order_within_group[
-                group_id
-            ]
-            prev_community_id = None
-            for community_id in order_of_communities:
-                community = self._communities[community_id]
-                if prev_community_id:
-                    _, order_within_community = get_traverse_order_first(
-                        community.graph
-                    )
-                else:
-                    _, order_within_community = get_traverse_order(community.graph)
-                    order_of_nodes = order_within_community[0]
-                prev_community_id = community_id
-        # Decide a starting point within first community with respect to the next community
-        # Will probably need a function which detects if we need multiple passes through same community,
-        # if so we need to simulate all passes with lowest possible overlay
-        # Probably DFS and then add non-visited later on
-        start_node = None
-        #
-        pass

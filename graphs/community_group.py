@@ -29,9 +29,9 @@ class CommunityGroup:
                 graph=self.parent_graph,
             )
         )
-        self.global_traversal = None
+        self.global_traversal, self.global_traversal_parents = [], []
         self.ordered_exits = defaultdict(list)
-        self._traverse_through_communities()
+        self._find_best_traversal_through_group()
 
     def _find_community_border_info(
         self,
@@ -108,7 +108,7 @@ class CommunityGroup:
         ):
             self.ordered_exits[community.id].append((exit_node_id, next_community_id))
 
-    def _traverse_through_communities(self) -> None:
+    def _find_best_traversal_through_group(self) -> None:
         """
         Traverse through all communities in the group:
         1. Find all entrances to the current community based on previously maintained entrances.
@@ -136,7 +136,7 @@ class CommunityGroup:
 
             # Traverse through community (it will save path) and get the chosen border node ids
             # (i.e. the border nodes that are actually used to traverse to the next community)
-            decided_border_node_ids = community.traverse_and_save(
+            decided_border_node_ids = community.find_best_traversal_through_community(
                 first_node_ids, ordered_border_node_ids
             )
 
@@ -146,29 +146,16 @@ class CommunityGroup:
 
             self._assing_community_exits(community)
 
-    def _visit_community(self, community_id: int, first_parent: int = -1):
-        print(f"Visiting community {community_id}")
-        community = self.communities[community_id]
-        nodes = community.traversal_order
-        parents = community.traversal_order_parents
-        parents[0] = first_parent
-        community_exits = self.ordered_exits[community_id]
-        curr_exit = 0
+    def traverse_through_group(self):
+        """
+        Based on previously created group traversal, visit all communities in
+        the group in selected order. First parent in each community will last
+        node from previous community (None if first community).
+        """
 
-        for idx, node_id in enumerate(nodes):
-            # Visit node
-            self.global_traversal.append(node_id)
-            self.global_traversal_parents.append(parents[idx])
-            if curr_exit < len(community_exits):
-                exit_node_id = community_exits[curr_exit][0]
-                next_community_id = community_exits[curr_exit][1]
-                if idx == exit_node_id:
-                    # Detour into new community
-                    self._visit_community(next_community_id, nodes[exit_node_id])
-                    curr_exit += 1
-
-    def visit_communities(self):
-        self.global_traversal = []
-        self.global_traversal_parents = []
-        first_community_id = self.traversal_order[0]
-        self._visit_community(first_community_id)
+        for community_id in self.traversal_order:
+            community = self.communities[community_id]
+            if self.global_traversal:
+                community.traversal_order_parents[0] = self.global_traversal[-1]
+            self.global_traversal_parents.extend(community.traversal_order_parents)
+            self.global_traversal.extend(community.traversal_order)

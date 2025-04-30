@@ -119,7 +119,7 @@ class Community:
         global_exit_ids = self.format_chosen_borders(mid_borders_chosen_ids, best_attempt)
         return best_attempt, global_exit_ids
 
-    def traverse_and_save(
+    def find_best_traversal_through_community(
         self,
         entry_node_ids: GlobalBorderNodes | None,
         ordered_borders_exit_nodes: list[GlobalBorderNodes],

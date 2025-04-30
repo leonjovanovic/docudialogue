@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import defaultdict
+from enum import Enum
 import os
 from igraph import Graph
 from leidenalg import ModularityVertexPartition
@@ -40,6 +41,12 @@ class LocalBorderNodes(BorderNodes):
 
     def globalize(self, mapping: dict) -> GlobalBorderNodes:
         return GlobalBorderNodes([mapping[node_id] for node_id in self.node_ids])
+
+
+class OrderType(Enum):
+    """Enum for ordering types."""
+
+    FROM_ENDS = "FRONT_ENDS"
 
 
 def summarize_descriptions(descriptions: list[str] | dict, prompt: str) -> str:
@@ -132,16 +139,15 @@ def _map_child_to_parent_graph_nodes(
     return mapping
 
 
-def order_list(length: int, order="from_ends") -> list[int]:
-    if order == "from_ends":
+def order_list(length: int, order: OrderType) -> list[int]:
+    if order == OrderType.FROM_ENDS:
+        # Iterate through the list in the specified manner:
+        # First element, last element, second element, second to last element, etc.
         group_order = []
-        # Iterate through the list in the specified manner
         for i in range(length // 2):
-            group_order.append(i)  # First element, second element, etc.
-            group_order.append(
-                length - 1 - i
-            )  # Last element, second last element, etc.
-        # If the list has an odd number of elements, print the middle element
+            group_order.append(i)
+            group_order.append(length - 1 - i)
+        # If the length is odd, add the middle element at the end
         if length % 2 != 0:
             group_order.append(length // 2)
         return group_order
@@ -198,7 +204,10 @@ def modified_dfs(
     mid_borders: list[LocalBorderNodes],
     last_border: LocalBorderNodes,
 ):
-    """Perform a modified DFS traversal on the graph to ensure it starts and ends with specific nodes."""
+    """
+    Perform a modified DFS traversal on the graph to ensure
+    it starts and ends with specific nodes.
+    """
 
     # Helper function to perform DFS
     def dfs(
@@ -327,9 +336,3 @@ def modified_dfs(
 
     mid_exits = [m[0] for m in mid_order]
     return found_path, path, mid_exits
-
-    # Input: Graph, start, mids, end
-    # Krcemo od start noda (dodajemo start u visited i u path)
-    # Obilazimo neighbor po neighbor u for petlji
-    # Ukoliko neko od njih je end ali nismo obisli sve, zabelezi ako je duza od prethodne zabelezene path i return False
-    # ako su sve obidjene return True -- ovde cemo prosiriti da return True samo ako zadovoljava uslov da su mdis po pravom rasporedu
