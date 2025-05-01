@@ -1,8 +1,28 @@
+## Triplet Extraction
 * Multiprocecssing for triplets extraction (differentiate between multiprocessing for each document and for each chunk) and graph summarization
 * Find a way to merge very similar entities
 * split entity types into 2 gpt calls, second to check.
 
-## traversal
+## Traversal
 * do random init so few runs are tried and best selected
-* format code
-* connect everything for global traversal
+
+## Visualization
+* Maybe show community groups if it doesnt make graph too cluttered
+
+## GPT Generation
+* First version: Go through whole graph and generate for 2 person Q&A
+    * Create generation for all possible combinations:
+        1. Normal forward triplets
+        2. Going back and moving forward
+        3. Transition between communities
+        4. Transition between community groups
+    * Create more advanced combinations:
+        1. Multiple steps - based on combination combine multiple generations from above
+        2. Abrupt stops - switch community or switch community group
+* Second version: Add parameters to influence:
+    1. How much per community/community group nodes will be passed before moving on
+    2. Random choise
+    3.
+* Third version: Add multiple conversation types:
+    1. Realistic conversation
+    2. LLM QA dataset

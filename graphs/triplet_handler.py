@@ -181,6 +181,30 @@ class GraphTripletHandler:
             traverse_order_group_ids.append(group_in_sorted_list.id)
         return traverse_order_group_ids
 
+    def _remove_redundant_visits(
+        self, traverse_order: list[int], traverse_order_parents: list[int]):
+        """
+        Remove redundant visits to the same node in the global traversal order.
+        """
+        # Remove visits where we are going back to the parent node.
+        for i in range(len(traverse_order) - 1, 0, -1):
+            if traverse_order[i] == traverse_order_parents[i - 1]:
+                del traverse_order[i]
+                del traverse_order_parents[i]
+        
+        # Remove already visited nodes from the global traversal order.
+        # This happens because when exiting community we might need to go through visited nodes.
+        seen = set()
+        new_traverse_order = []
+        new_traverse_order_parents = []
+
+        for val1, val2 in zip(traverse_order, traverse_order_parents):
+            if val1 not in seen:
+                seen.add(val1)
+                new_traverse_order.append(val1)
+                new_traverse_order_parents.append(val2)
+        return new_traverse_order, new_traverse_order_parents
+
     def visit_community_groups(self):
         """
         Based on previously defined traversal order within each community,
@@ -201,4 +225,4 @@ class GraphTripletHandler:
             # Take global node ids from traversed community
             # and add them to the global traversal order
             traverse_order.extend(group.global_traversal)
-        return traverse_order, traverse_order_parents
+        return self._remove_redundant_visits(traverse_order, traverse_order_parents)
