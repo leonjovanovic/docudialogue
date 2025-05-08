@@ -2,17 +2,17 @@ from abc import ABC, abstractmethod
 import igraph as ig
 import leidenalg
 
-from graphs.community import Community
-from graphs.community_group import CommunityGroup
-from graphs.graph_utils import (
+from dialog_generator.graphs.community import Community
+from dialog_generator.graphs.community_group import CommunityGroup
+from dialog_generator.graphs.graph_utils import (
     OrderType,
     find_neighbour_connections,
     order_list,
     order_nodes_by_centralization,
     summarize_descriptions,
 )
-from llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
-from triplet_extraction.classes import Entity, Relationship, Triplet
+from dialog_generator.llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
+from dialog_generator.triplet_extraction.classes import Entity, Relationship, Triplet
 
 
 class AbstractTripletHandler(ABC):

@@ -3,7 +3,7 @@
 import igraph as ig
 from typing import List, Tuple, Dict, Optional, Any
 
-from graphs.triplet_handler import AbstractTripletHandler
+from dialog_generator.graphs.triplet_handler import AbstractTripletHandler
 
 def extract_communities_from_pipeline(triplet_handler: AbstractTripletHandler) -> List[List[int]]:
     """

@@ -6,8 +6,8 @@ from igraph import Graph
 from leidenalg import ModularityVertexPartition
 import networkx
 
-from llm_wrappers.llm_wrappers import OpenAIModel
-from llm_wrappers.pydantic_classes import SummarizedDescription
+from dialog_generator.llm_wrappers.llm_wrappers import OpenAIModel
+from dialog_generator.llm_wrappers.pydantic_classes import SummarizedDescription
 
 
 class CommunityNeighbourConnections:

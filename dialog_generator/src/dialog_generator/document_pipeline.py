@@ -2,13 +2,12 @@ import json
 import logging
 import os
 from haystack import Document
-from uuid import uuid4
 
-from graphs.triplet_handler import AbstractTripletHandler, GraphTripletHandler
-from input_handler.input_pipeline import PreprocessingPipeline
-from triplet_extraction.classes import Triplet
-from triplet_extraction.triplet_extractor import TripletExtractionPipeline
-from utils import load_pickle, save_pickle
+from dialog_generator.graphs.triplet_handler import AbstractTripletHandler, GraphTripletHandler
+from dialog_generator.input_handler.input_pipeline import PreprocessingPipeline
+from dialog_generator.triplet_extraction.classes import Triplet
+from dialog_generator.triplet_extraction.triplet_extractor import TripletExtractionPipeline
+from dialog_generator.utils import load_pickle, save_pickle
 
 logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -26,20 +25,20 @@ class DocumentPipeline:
 
     def run(self, config_path: str):
         # Step 1: Initialize pipeline
-        # self._initialize_pipeline(config_path)
+        self._initialize_pipeline(config_path)
 
         # # Step 2: Process all documents
-        # self.docs = [
-        #     self.preprocessing_pipeline.run(path)["document_splitter"]["documents"]
-        #     for path in self.config["input"]["file_paths"]
-        # ]
-        # logger.info(f"Document was split into {len(self.docs)} documents")
+        self.docs = [
+            self.preprocessing_pipeline.run(path)["document_splitter"]["documents"]
+            for path in self.config["input"]["file_paths"]
+        ]
+        logger.info(f"Document was split into {len(self.docs)} documents")
 
         # # Step 3: Extract triplets from each chunk
-        # self.triplets = self.triplet_extraction_pipeline.run(
-        #     [[chunk.content for chunk in doc] for doc in self.docs]
-        # )
-        # logger.info(f"Total number of triplets: {len(self.triplets)}")
+        self.triplets = self.triplet_extraction_pipeline.run(
+            [[chunk.content for chunk in doc] for doc in self.docs]
+        )
+        logger.info(f"Total number of triplets: {len(self.triplets)}")
 
         # Step 4: Create triplet handler
         self.triplet_handler = GraphTripletHandler(self.triplets)

@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from triplet_extraction.classes import Entity, Relationship, Triplet
-from llm_wrappers.llm_wrappers import OpenAIModel
-from llm_wrappers.prompts import RELATIONSHIPS_GENERATION_PROMPT
-from llm_wrappers.pydantic_classes import RelationshipResponse
+from dialog_generator.triplet_extraction.classes import Entity, Relationship, Triplet
+from dialog_generator.llm_wrappers.llm_wrappers import OpenAIModel
+from dialog_generator.llm_wrappers.prompts import RELATIONSHIPS_GENERATION_PROMPT
+from dialog_generator.llm_wrappers.pydantic_classes import RelationshipResponse
 
 
 logger = logging.getLogger(__name__)

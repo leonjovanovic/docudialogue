@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from typing import List, Tuple, Optional
 
-from graphs.triplet_handler import AbstractTripletHandler
-from visualization.visualization_utils import calculate_community_patch, draw_traversal_arrows
-from visualization.graph_plot_data_utils import ensure_node_labels, extract_communities_from_pipeline, prepare_traversal_arrows
+from dialog_generator.graphs.triplet_handler import AbstractTripletHandler
+from dialog_generator.visualization.visualization_utils import calculate_community_patch, draw_traversal_arrows
+from dialog_generator.visualization.graph_plot_data_utils import ensure_node_labels, extract_communities_from_pipeline, prepare_traversal_arrows
 
 def plot_graph_with_communities_and_traversal(
     graph: ig.Graph,

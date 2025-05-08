@@ -1,8 +1,8 @@
 from collections import defaultdict
 from igraph import Graph
 
-from graphs.community import Community
-from graphs.graph_utils import (
+from dialog_generator.graphs.community import Community
+from dialog_generator.graphs.graph_utils import (
     CommunityNeighbourConnections,
     order_group_nodes_for_traversal,
     GlobalBorderNodes,

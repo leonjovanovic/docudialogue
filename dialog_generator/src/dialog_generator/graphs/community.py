@@ -1,6 +1,6 @@
 from igraph import Graph
 
-from graphs.graph_utils import (
+from dialog_generator.graphs.graph_utils import (
     CommunityNeighbourConnections,
     GlobalBorderNodes,
     LocalBorderNodes,
@@ -8,7 +8,7 @@ from graphs.graph_utils import (
     modified_dfs,
     summarize_descriptions,
 )
-from llm_wrappers.prompts import SUMMARIZE_GRAPH_PROMPT
+from dialog_generator.llm_wrappers.prompts import SUMMARIZE_GRAPH_PROMPT
 
 
 class Community:

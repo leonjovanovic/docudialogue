@@ -2,18 +2,18 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from triplet_extraction.classes import Entity, Relationship, Triplet
-from triplet_extraction.entity_extractor import (
+from dialog_generator.triplet_extraction.classes import Entity, Relationship, Triplet
+from dialog_generator.triplet_extraction.entity_extractor import (
     LLMEntityExtractor,
     TransformerEntityExtractor,
 )
-from llm_wrappers.llm_wrappers import OpenAIModel
-from llm_wrappers.prompts import (
+from dialog_generator.llm_wrappers.llm_wrappers import OpenAIModel
+from dialog_generator.llm_wrappers.prompts import (
     ENTITY_TYPE_GENERATION_PROMPT,
     ENTITY_RELATIONSHIPS_GENERATION_PROMPT,
 )
-from llm_wrappers.pydantic_classes import EntityRelationshipResponse, EntityTypes
-from triplet_extraction.relationship_extractor import LLMRelationshipExtractor
+from dialog_generator.llm_wrappers.pydantic_classes import EntityRelationshipResponse, EntityTypes
+from dialog_generator.triplet_extraction.relationship_extractor import LLMRelationshipExtractor
 
 
 logger = logging.getLogger(__name__)
@@ -31,25 +31,30 @@ class TripletExtractionPipeline:
                 self._model, config["entity_extractor_type"]
             )
 
-    def run(self, docs: list[list[str]]) -> list[Triplet]:
-        triplets = []
-        for doc in docs:
-            triplets.extend(self.run_doc(doc))
-
-    def run_doc(self, doc: list[str]) -> list[Triplet]:
+    def _detect_entity_types(self, docs: list[list[str]]) -> list[str]:
         if not self._entity_types:
             logger.info("Entity types not found! Quering LLM to find it...")
+            input_text = " ".join([d for doc in docs for d in doc])
             self._entity_types = self._model.parse(
                 system_prompt="",
                 user_prompt=ENTITY_TYPE_GENERATION_PROMPT.format(
-                    input_text=" ".join(doc)
+                    input_text=input_text
                 ),
                 response_format=EntityTypes,
                 model_name="gpt-4o-mini",
                 temperature=0,
             ).types
             logger.info(f"Following entity types found: {self._entity_types}")
-        return self.extractor.extract(doc, self._entity_types)
+        return self._entity_types
+
+    def run(self, docs: list[list[str]]) -> list[Triplet]:
+        triplets = []
+        self._detect_entity_types(docs)
+        for doc in docs:
+            curr_triplets = self.extractor.extract(doc, self._entity_types)
+            logger.info(f"Found {len(curr_triplets)} triplets in document.")
+            triplets.extend(curr_triplets)
+        return triplets
 
 
 class AbstractTripletExtractor(ABC):

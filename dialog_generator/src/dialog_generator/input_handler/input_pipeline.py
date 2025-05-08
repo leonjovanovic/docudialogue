@@ -1,9 +1,7 @@
-from haystack.components.writers import DocumentWriter
 from haystack.components.converters import MarkdownToDocument, PyPDFToDocument, TextFileToDocument
 from haystack.components.preprocessors import DocumentSplitter, DocumentCleaner
 from haystack.components.routers import FileTypeRouter
 from haystack.components.joiners import DocumentJoiner
-from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack import Pipeline
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 
@@ -54,8 +52,3 @@ class PreprocessingPipeline:
                 }
             }
         )
-        # [
-        #                 "content/vegan_sunflower_hemp_cheese_recipe.txt",
-        #                 "content/vegan_keto_eggplant_recipe.pdf",
-        #                 "content/vegan_flan_recipe.md",
-        #             ]

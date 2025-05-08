@@ -1,8 +1,0 @@
-python-dotenv
-haystack-ai
-pydantic
-openai
-markdown-it-py
-mdit_plain
-pypdf
-neo4j
