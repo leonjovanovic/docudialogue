@@ -27,6 +27,8 @@ DocuDialogue is an advanced system for generating realistic, multi-turn dialogue
     *   A modified DFS algorithm is employed to navigate the KG.
     *   The traversal prioritizes exploring within a community before moving to another.
     *   It identifies optimal "entry" and "exit" nodes when moving between communities to maintain conversational coherence.
+    *   The image below illustrates an example of the graph structure with communities and potential traversal paths:
+        ![Knowledge Graph with Communities and Traversal Paths](graph.png)
 6.  **Contextual Dialogue Generation:**
     *   As the traversal progresses, the sequence of visited nodes (subjects) and community shifts are fed to a specialized LLM.
     *   The LLM generates dialogue turns reflecting the current traversal state:
@@ -65,19 +67,34 @@ This project uses `uv` for packaging and environment management.
     uv pip install -e .
     ```
 
+## Environment Variables
+
+Before running DocuDialogue, you need to set up environment variables for accessing the Large Language Model (LLM) API and connecting to your Neo4j database (if used as a backend for the Knowledge Graph). These variables should be placed in a `.env` file in the root directory of the project.
+
+Create a file named `.env` in the project root and add the following, replacing the placeholder values with your actual credentials:
+
+```dotenv
+LLM_API_KEY="your_llm_api_key_here"
+NEO4J_URI="your_neo4j_uri_here" # e.g., "neo4j://localhost:7687" or "neo4j+s://your_instance.databases.neo4j.io"
+NEO4J_USERNAME="your_neo4j_username"
+NEO4J_PASSWORD="your_neo4j_password"
+```
+
+The application will typically load these variables at startup. Ensure this `.env` file is not committed to version control if it contains sensitive information (add `.env` to your `.gitignore` file).
+
 ## Configuration
 
 The behavior of DocuDialogue is controlled by a `config.json` file located in the root directory of the project. This file allows you to adjust parameters for each stage of the pipeline, such as:
 
 *   Triplet extraction models or settings
-*   Knowledge Graph construction parameters
+*   Knowledge Graph construction parameters (e.g., whether to use Neo4j or an in-memory graph)
 *   Leiden algorithm settings (e.g., resolution parameter)
 *   Traversal algorithm heuristics
-*   LLM model selection and prompting strategies
+*   LLM model selection (which might use the `LLM_API_KEY` from your `.env` file) and prompting strategies
 *   Number of personas in the dialogue
 *   Output formatting options
 
-**Before running the tool, ensure you have a `config.json` file in the project root.** You may need to copy a `config.example.json` (if provided) to `config.json` and modify it according to your needs.
+**Before running the tool, ensure you have a `config.json` file in the project root.** You may need to copy a `config.example.json` (if provided) to `config.json` and modify it according to your needs. The settings in `config.json` will determine how the application uses the credentials provided in the `.env` file.
 
 ```json
 // Example snippet of config.json (structure may vary)
@@ -89,7 +106,10 @@ The behavior of DocuDialogue is controlled by a `config.json` file located in th
     "model": "spacy_custom_rules"
   },
   "knowledge_graph": {
-    "library": "networkx"
+    "library": "networkx", // Could be "neo4j" to use Neo4j credentials
+    "store_uri": "", // Potentially used if library is neo4j, or fetched from NEO4J_URI
+    "username": "",  // Potentially used if library is neo4j, or fetched from NEO4J_USERNAME
+    "password": ""   // Potentially used if library is neo4j, or fetched from NEO4J_PASSWORD
   },
   "community_detection": {
     "algorithm": "leiden",
@@ -100,7 +120,7 @@ The behavior of DocuDialogue is controlled by a `config.json` file located in th
     "community_hop_penalty": 0.5
   },
   "llm_dialogue": {
-    "model_provider": "openai", // or "huggingface", "local_ollama" etc.
+    "model_provider": "openai", // or "huggingface", "local_ollama" etc. Uses LLM_API_KEY
     "model_name": "gpt-3.5-turbo",
     "temperature": 0.7,
     "max_tokens_per_turn": 150,
@@ -116,12 +136,13 @@ The behavior of DocuDialogue is controlled by a `config.json` file located in th
 
 To generate a dialogue from a PDF document, you will typically run a main script from the command line.
 
-1.  **Ensure your `config.json` is properly set up.**
-2.  **Activate your virtual environment** (if not already active):
+1.  **Ensure your `.env` file is created and populated with your credentials.**
+2.  **Ensure your `config.json` is properly set up.**
+3.  **Activate your virtual environment** (if not already active):
     ```bash
     source .venv/bin/activate
     ```
-3.  **Run the main script** TODO
+4.  **Run the main script** TODO
 
 ## Contributing
 
