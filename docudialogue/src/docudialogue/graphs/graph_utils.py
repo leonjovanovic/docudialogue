@@ -6,8 +6,8 @@ from igraph import Graph
 from leidenalg import ModularityVertexPartition
 import networkx
 
-from dialog_generator.llm_wrappers.llm_wrappers import OpenAIModel
-from dialog_generator.llm_wrappers.pydantic_classes import SummarizedDescription
+from docudialogue.llm_wrappers.llm_wrappers import OpenAIModel
+from docudialogue.llm_wrappers.pydantic_classes import SummarizedDescription
 
 
 class CommunityNeighbourConnections:
@@ -49,12 +49,12 @@ class OrderType(Enum):
     FROM_ENDS = "FRONT_ENDS"
 
 
-def summarize_descriptions(descriptions: list[str] | dict, prompt: str) -> str:
+async def summarize_descriptions(descriptions: list[str] | dict, prompt: str) -> str:
     if isinstance(descriptions, list) and len(descriptions) == 1:
         return descriptions[0]
     else:
         model = OpenAIModel(os.environ["LLM_API_KEY"])
-        return model.parse(
+        return await model.parse(
             system_prompt="",
             user_prompt=prompt.format(descriptions=descriptions),
             response_format=SummarizedDescription,

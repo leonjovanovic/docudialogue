@@ -2,18 +2,19 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from dialog_generator.triplet_extraction.classes import Entity, Relationship, Triplet
-from dialog_generator.triplet_extraction.entity_extractor import (
+from docudialogue.src.docudialogue.utils import run_concurrent
+from docudialogue.triplet_extraction.classes import Entity, Relationship, Triplet
+from docudialogue.triplet_extraction.entity_extractor import (
     LLMEntityExtractor,
     TransformerEntityExtractor,
 )
-from dialog_generator.llm_wrappers.llm_wrappers import OpenAIModel
-from dialog_generator.llm_wrappers.prompts import (
+from docudialogue.llm_wrappers.llm_wrappers import OpenAIModel
+from docudialogue.llm_wrappers.prompts import (
     ENTITY_TYPE_GENERATION_PROMPT,
     ENTITY_RELATIONSHIPS_GENERATION_PROMPT,
 )
-from dialog_generator.llm_wrappers.pydantic_classes import EntityRelationshipResponse, EntityTypes
-from dialog_generator.triplet_extraction.relationship_extractor import LLMRelationshipExtractor
+from docudialogue.llm_wrappers.pydantic_classes import EntityRelationshipResponse, EntityTypes
+from docudialogue.triplet_extraction.relationship_extractor import LLMRelationshipExtractor
 
 
 logger = logging.getLogger(__name__)
@@ -31,11 +32,11 @@ class TripletExtractionPipeline:
                 self._model, config["entity_extractor_type"]
             )
 
-    def _detect_entity_types(self, docs: list[list[str]]) -> list[str]:
+    async def _detect_entity_types(self, docs: list[list[str]]) -> list[str]:
         if not self._entity_types:
             logger.info("Entity types not found! Quering LLM to find it...")
             input_text = " ".join([d for doc in docs for d in doc])
-            self._entity_types = self._model.parse(
+            respone = await self._model.parse(
                 system_prompt="",
                 user_prompt=ENTITY_TYPE_GENERATION_PROMPT.format(
                     input_text=input_text
@@ -43,15 +44,16 @@ class TripletExtractionPipeline:
                 response_format=EntityTypes,
                 model_name="gpt-4o-mini",
                 temperature=0,
-            ).types
+            )
+            self._entity_types = respone.types
             logger.info(f"Following entity types found: {self._entity_types}")
         return self._entity_types
 
-    def run(self, docs: list[list[str]]) -> list[Triplet]:
+    async def run(self, docs: list[list[str]]) -> list[Triplet]:
         triplets = []
-        self._detect_entity_types(docs)
+        await self._detect_entity_types(docs)
         for doc in docs:
-            curr_triplets = self.extractor.extract(doc, self._entity_types)
+            curr_triplets = await self.extractor.extract(doc, self._entity_types)
             logger.info(f"Found {len(curr_triplets)} triplets in document.")
             triplets.extend(curr_triplets)
         return triplets
@@ -62,15 +64,14 @@ class AbstractTripletExtractor(ABC):
         super().__init__()
 
     @abstractmethod
-    def _extract_from_text(self, text: str, entity_types: list[str]) -> list[Triplet]:
+    async def _extract_from_text(self, text: str, entity_types: list[str]) -> list[Triplet]:
         raise NotImplementedError
 
-    def extract(self, texts: list[str], entity_types: list[str]) -> list[Triplet]:
-        triplets = []
-        for text in texts:
-            triplets.extend(self._extract_from_text(text, entity_types))
-        triplets = self.postprocess_triplets(triplets)
-        return triplets
+    async def extract(self, texts: list[str], entity_types: list[str]) -> list[Triplet]:
+        async_funcs = [lambda t=text: self._extract_from_text(t, entity_types) for text in texts]
+        results = await run_concurrent(async_funcs)
+        triplets = [triplet for sublist in results for triplet in sublist]
+        return self.postprocess_triplets(triplets)
 
     def postprocess_triplets(self, triplets: list[Triplet]) -> list[Triplet]:
         # Remove duplicates
@@ -84,8 +85,8 @@ class CombinedTripletExtractor(AbstractTripletExtractor):
         self._entity_types = entity_types
         logger.info("Combined Triplet Extractor initialized!")
 
-    def _extract_from_text(self, text: str, entity_types: list[str]) -> list[Triplet]:
-        response: EntityRelationshipResponse = self._model.parse(
+    async def _extract_from_text(self, text: str, entity_types: list[str]) -> list[Triplet]:
+        response: EntityRelationshipResponse = await self._model.parse(
             system_prompt="",
             user_prompt=ENTITY_RELATIONSHIPS_GENERATION_PROMPT.format(
                 entity_types=entity_types, input_text=text
@@ -127,6 +128,6 @@ class SeparateTripletExtractor(AbstractTripletExtractor):
         self._relationship_extractor = LLMRelationshipExtractor()
         logger.info("Separate Triplet Extractor initialized!")
 
-    def _extract_from_text(self, text: str, entity_types: list[str]) -> list[Triplet]:
-        entites = self._entity_extractor.extract(text, entity_types)
-        return self._relationship_extractor.extract(text, entites)
+    async def _extract_from_text(self, text: str, entity_types: list[str]) -> list[Triplet]:
+        entites = await self._entity_extractor.extract(text, entity_types)
+        return await self._relationship_extractor.extract(text, entites)

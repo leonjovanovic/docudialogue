@@ -3,11 +3,11 @@ import logging
 import os
 from haystack import Document
 
-from dialog_generator.graphs.triplet_handler import AbstractTripletHandler, GraphTripletHandler
-from dialog_generator.input_handler.input_pipeline import PreprocessingPipeline
-from dialog_generator.triplet_extraction.classes import Triplet
-from dialog_generator.triplet_extraction.triplet_extractor import TripletExtractionPipeline
-from dialog_generator.utils import load_pickle, save_pickle
+from docudialogue.graphs.triplet_handler import AbstractTripletHandler, GraphTripletHandler
+from docudialogue.input_handler.input_pipeline import PreprocessingPipeline
+from docudialogue.triplet_extraction.classes import Triplet
+from docudialogue.triplet_extraction.triplet_extractor import TripletExtractionPipeline
+from docudialogue.utils import load_pickle, save_pickle
 
 logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class DocumentPipeline:
         self.triplets: list[Triplet] = None
         self.triplet_handler: AbstractTripletHandler = None
 
-    def run(self, config_path: str):
+    async def run(self, config_path: str):
         # Step 1: Initialize pipeline
         self._initialize_pipeline(config_path)
 
@@ -35,7 +35,7 @@ class DocumentPipeline:
         logger.info(f"Document was split into {len(self.docs)} documents")
 
         # # Step 3: Extract triplets from each chunk
-        self.triplets = self.triplet_extraction_pipeline.run(
+        self.triplets = await self.triplet_extraction_pipeline.run(
             [[chunk.content for chunk in doc] for doc in self.docs]
         )
         logger.info(f"Total number of triplets: {len(self.triplets)}")

@@ -8,7 +8,7 @@ from scipy.spatial.distance import pdist, squareform
 from typing import List, Tuple, Dict, Optional
 
 
-from dialog_generator.visualization.graph_plot_data_utils import prepare_traversal_arrows, ensure_node_labels
+from docudialogue.visualization.graph_plot_data_utils import prepare_traversal_arrows, ensure_node_labels
 
 # --- Constants for Community Highlighting ---
 # Consider making these configurable if needed

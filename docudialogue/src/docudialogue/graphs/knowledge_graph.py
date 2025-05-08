@@ -3,7 +3,7 @@ from neo4j import GraphDatabase
 import re
 from tqdm import tqdm
 
-from dialog_generator.triplet_extraction.classes import Entity, Triplet
+from docudialogue.triplet_extraction.classes import Entity, Triplet
 
 
 class Neo4JGraph:

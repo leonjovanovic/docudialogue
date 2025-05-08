@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import openai
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 
@@ -9,7 +9,7 @@ class LLMModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def create(
+    async def create(
         self,
         system_prompt: str,
         user_prompt: str,
@@ -23,7 +23,7 @@ class LLMModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def parse(
+    async def parse(
         self,
         system_prompt: str,
         user_prompt: str,
@@ -40,9 +40,9 @@ class LLMModel(ABC):
 
 class OpenAIModel(LLMModel):
     def __init__(self, api_key: str):
-        self.client = openai.OpenAI(api_key=api_key)
+        self.client = AsyncOpenAI(api_key=api_key)
 
-    def create(
+    async def create(
         self,
         system_prompt: str,
         user_prompt: str,
@@ -56,7 +56,7 @@ class OpenAIModel(LLMModel):
         system_message = {"role": "system", "content": system_prompt}
         user_message = {"role": "user", "content": user_prompt}
         return (
-            self.client.chat.completions.create(
+            await self.client.chat.completions.create(
                 model=model_name,
                 messages=[system_message, user_message],
                 temperature=temperature,
@@ -69,7 +69,7 @@ class OpenAIModel(LLMModel):
             .message.content
         )
 
-    def parse(
+    async def parse(
         self,
         system_prompt: str,
         user_prompt: str,
@@ -83,17 +83,14 @@ class OpenAIModel(LLMModel):
     ) -> BaseModel:
         system_message = {"role": "system", "content": system_prompt}
         user_message = {"role": "user", "content": user_prompt}
-        return (
-            self.client.beta.chat.completions.parse(
-                model=model_name,
-                messages=[system_message, user_message],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty,
-                response_format=response_format,
-            )
-            .choices[0]
-            .message.parsed
+        response = await self.client.beta.chat.completions.parse(
+            model=model_name,
+            messages=[system_message, user_message],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            response_format=response_format,
         )
+        return response.choices[0].message.parsed

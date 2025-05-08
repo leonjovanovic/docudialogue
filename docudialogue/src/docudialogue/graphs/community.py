@@ -1,6 +1,6 @@
 from igraph import Graph
 
-from dialog_generator.graphs.graph_utils import (
+from docudialogue.graphs.graph_utils import (
     CommunityNeighbourConnections,
     GlobalBorderNodes,
     LocalBorderNodes,
@@ -8,7 +8,7 @@ from dialog_generator.graphs.graph_utils import (
     modified_dfs,
     summarize_descriptions,
 )
-from dialog_generator.llm_wrappers.prompts import SUMMARIZE_GRAPH_PROMPT
+from docudialogue.llm_wrappers.prompts import SUMMARIZE_GRAPH_PROMPT
 
 
 class Community:
@@ -190,7 +190,7 @@ class Community:
                         break
         self.exits.append(len(self.traversal_order) - 1)
 
-    def summarize_community(self):
+    async def summarize_community(self):
         vertex_descriptions = [
             desc for vertex in self.graph.vs for desc in vertex["desc"]
         ]
@@ -199,4 +199,4 @@ class Community:
             "vertex_descriptions": vertex_descriptions,
             "edge_descriptions": edge_descriptions,
         }
-        return summarize_descriptions(descriptions, SUMMARIZE_GRAPH_PROMPT)
+        return await summarize_descriptions(descriptions, SUMMARIZE_GRAPH_PROMPT)

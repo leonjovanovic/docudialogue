@@ -3,13 +3,13 @@ import os
 from dotenv import load_dotenv
 import logging
 
-from dialog_generator.triplet_extraction.classes import Entity
-from dialog_generator.llm_wrappers.llm_wrappers import OpenAIModel
-from dialog_generator.llm_wrappers.prompts import (
+from docudialogue.triplet_extraction.classes import Entity
+from docudialogue.llm_wrappers.llm_wrappers import OpenAIModel
+from docudialogue.llm_wrappers.prompts import (
     ENTITY_GENERATION_PROMPT,
     ENTITY_TYPE_GENERATION_PROMPT,
 )
-from dialog_generator.llm_wrappers.pydantic_classes import EntityResponse, EntityTypes
+from docudialogue.llm_wrappers.pydantic_classes import EntityResponse, EntityTypes
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -19,11 +19,11 @@ logger.setLevel(logging.INFO)
 class EntityExtractor(ABC):
 
     @abstractmethod
-    def _extract(self, text: str) -> list[Entity]:
+    async def _extract(self, text: str) -> list[Entity]:
         raise NotImplementedError
 
-    def extract(self, text: str, entity_types: list[str]) -> list[Entity]:
-        entities = self._extract(text, entity_types)
+    async def extract(self, text: str, entity_types: list[str]) -> list[Entity]:
+        entities = await self._extract(text, entity_types)
         return self.postprocess_entites(entities)
 
     def postprocess_entites(self, entites: list[Entity]) -> list[Entity]:
@@ -40,9 +40,9 @@ class LLMEntityExtractor(EntityExtractor):
         self._entity_types = entity_types
         logger.info("LLM Entity Extractor initialized!")
 
-    def _extract(self, text: str, entity_types: list[str]) -> list[Entity]:
+    async def _extract(self, text: str, entity_types: list[str]) -> list[Entity]:
         logger.info(f"Searching for following entities: {entity_types}")
-        response: EntityResponse = self._model.parse(
+        response: EntityResponse = await self._model.parse(
             system_prompt="",
             user_prompt=ENTITY_GENERATION_PROMPT.format(
                 entity_types=entity_types, input_text=text

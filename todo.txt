@@ -3,6 +3,7 @@
 * Find a way to merge very similar entities
 * split entity types into 2 gpt calls, second to check.
 
+
 ## Traversal
 * do random init so few runs are tried and best selected
 

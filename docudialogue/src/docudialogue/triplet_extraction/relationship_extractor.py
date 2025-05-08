@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from dialog_generator.triplet_extraction.classes import Entity, Relationship, Triplet
-from dialog_generator.llm_wrappers.llm_wrappers import OpenAIModel
-from dialog_generator.llm_wrappers.prompts import RELATIONSHIPS_GENERATION_PROMPT
-from dialog_generator.llm_wrappers.pydantic_classes import RelationshipResponse
+from docudialogue.triplet_extraction.classes import Entity, Relationship, Triplet
+from docudialogue.llm_wrappers.llm_wrappers import OpenAIModel
+from docudialogue.llm_wrappers.prompts import RELATIONSHIPS_GENERATION_PROMPT
+from docudialogue.llm_wrappers.pydantic_classes import RelationshipResponse
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class RelationshipExtractor(ABC):
         pass
 
     @abstractmethod
-    def extract(self, text: str) -> list[Relationship]:
+    async def extract(self, text: str) -> list[Relationship]:
         raise NotImplementedError
 
 
@@ -26,10 +26,10 @@ class LLMRelationshipExtractor(RelationshipExtractor):
         self._model = OpenAIModel(os.environ["LLM_API_KEY"])
         logger.info("LLM Relationship Extractor initialized!")
 
-    def extract(self, text: str, entities: list[Entity]) -> list[Triplet]:
+    async def extract(self, text: str, entities: list[Entity]) -> list[Triplet]:
         entities_lst = [[e.name, e.type] for e in entities]
         logger.info(f"Searching for relationships between given entities ({entities_lst})...")
-        response: RelationshipResponse = self._model.parse(
+        response: RelationshipResponse = await self._model.parse(
             system_prompt="",
             user_prompt=RELATIONSHIPS_GENERATION_PROMPT.format(
                 entities=entities_lst, input_text=text

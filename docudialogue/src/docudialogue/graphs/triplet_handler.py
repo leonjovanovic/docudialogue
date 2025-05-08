@@ -2,17 +2,17 @@ from abc import ABC, abstractmethod
 import igraph as ig
 import leidenalg
 
-from dialog_generator.graphs.community import Community
-from dialog_generator.graphs.community_group import CommunityGroup
-from dialog_generator.graphs.graph_utils import (
+from docudialogue.graphs.community import Community
+from docudialogue.graphs.community_group import CommunityGroup
+from docudialogue.graphs.graph_utils import (
     OrderType,
     find_neighbour_connections,
     order_list,
     order_nodes_by_centralization,
     summarize_descriptions,
 )
-from dialog_generator.llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
-from dialog_generator.triplet_extraction.classes import Entity, Relationship, Triplet
+from docudialogue.llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
+from docudialogue.triplet_extraction.classes import Entity, Relationship, Triplet
 
 
 class AbstractTripletHandler(ABC):
@@ -96,17 +96,17 @@ class GraphTripletHandler:
                 subject_node_id, object_node_id, triplet.relationship
             )
 
-    def _summarize_graph_descriptions(self):
+    async def _summarize_graph_descriptions(self):
         """ "Create cohesive description out of dscription list.
         Summarization will be done if list has more than 1 element."""
 
         for vertex in self._graph.vs:
-            vertex["desc"] = summarize_descriptions(
+            vertex["desc"] = await summarize_descriptions(
                 vertex["descriptions"], SUMMARIZE_DESCRIPTIONS_PROMPT
             )
 
         for edge in self._graph.es:
-            edge["desc"] = summarize_descriptions(
+            edge["desc"] = await summarize_descriptions(
                 edge["descriptions"], SUMMARIZE_DESCRIPTIONS_PROMPT
             )
 
