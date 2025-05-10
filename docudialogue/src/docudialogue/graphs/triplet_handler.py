@@ -15,17 +15,11 @@ from docudialogue.llm_wrappers.prompts import SUMMARIZE_DESCRIPTIONS_PROMPT
 from docudialogue.triplet_extraction.classes import Entity, Relationship, Triplet
 
 
-class AbstractTripletHandler(ABC):
 
-    @abstractmethod
-    def run(self) -> list[Triplet]:
-        raise NotImplementedError
-
-
-class GraphTripletHandler:
+class TripletGraph:
     def __init__(self, triplets: list[Triplet]):
         """
-        GraphTripletHandler creates a graph structures from triplets.
+        TripletGraph creates a graph structures from triplets.
         Steps:
         1. Create a graph with nodes and edges from triplets.
         2. Create communities from the graph using the Leiden algorithm

@@ -1,7 +1,5 @@
 {
-    "input": {
-        "file_paths": ["test.pdf"]
-    },
+    "cache_folder_path": ".cache/run2",
     "preprocessing_pipeline": {
         "split_length": 500,
         "split_overlap": 20

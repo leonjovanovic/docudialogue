@@ -3,9 +3,9 @@
 import igraph as ig
 from typing import List, Tuple, Dict, Optional, Any
 
-from docudialogue.graphs.triplet_handler import AbstractTripletHandler
+from docudialogue.graphs.triplet_handler import TripletGraph
 
-def extract_communities_from_pipeline(triplet_handler: AbstractTripletHandler) -> List[List[int]]:
+def extract_communities_from_pipeline(triplet_graph: TripletGraph) -> List[List[int]]:
     """
     Extracts node lists for each community from a triplet_handler object.
 
@@ -19,7 +19,7 @@ def extract_communities_from_pipeline(triplet_handler: AbstractTripletHandler) -
     """
     communities = []
     try:
-        for community_group in triplet_handler._community_groups.values():
+        for community_group in triplet_graph._community_groups.values():
             if not hasattr(community_group, 'communities'):
                 continue
             for community in community_group.communities.values():

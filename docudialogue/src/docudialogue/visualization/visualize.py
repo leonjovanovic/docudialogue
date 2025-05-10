@@ -1,9 +1,9 @@
+from docudialogue.graphs.triplet_handler import TripletGraph
 import igraph as ig
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from typing import List, Tuple, Optional
 
-from docudialogue.graphs.triplet_handler import AbstractTripletHandler
 from docudialogue.visualization.visualization_utils import calculate_community_patch, draw_traversal_arrows
 from docudialogue.visualization.graph_plot_data_utils import ensure_node_labels, extract_communities_from_pipeline, prepare_traversal_arrows
 
@@ -152,15 +152,15 @@ def plot_graph_with_communities_and_traversal(
 
     return fig, ax
 
-def visualize(triplet_handler: AbstractTripletHandler) -> None:
+def visualize(triplet_graph: TripletGraph) -> None:
     """
     Main function to visualize the graph with communities and traversal paths.
     """
 
-    graph_to_plot = triplet_handler._graph
-    traversal_path_data = triplet_handler.global_traversal
-    parent_nodes_data = triplet_handler.global_traversal_parents
-    extracted_communities = extract_communities_from_pipeline(triplet_handler)
+    graph_to_plot = triplet_graph._graph
+    traversal_path_data = triplet_graph.global_traversal
+    parent_nodes_data = triplet_graph.global_traversal_parents
+    extracted_communities = extract_communities_from_pipeline(triplet_graph)
 
     if graph_to_plot and extracted_communities is not None:
         fig, ax = plot_graph_with_communities_and_traversal(
